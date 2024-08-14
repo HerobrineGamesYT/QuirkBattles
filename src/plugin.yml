@@ -1,0 +1,5 @@
+main: net.herobrine.quirkbattle.QuirkBattlesPlugin
+name: QuirkBattles
+version: 1.0
+description: PVP Minigame with Quirks based on My Hero Academia.
+author: HeroDev_
