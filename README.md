@@ -9,7 +9,9 @@ Currently, two quirks are fully developed and the 1v1 mode is fully playable.
 Dependencies:
 
 [Mine] HerobrinePVP-CORE (Main core. It's the backbone for all my custom plugins within this setup.)
+
 [Mine] GameCore (Lots of minigame-related functions, configuration settings, and arena management. It's the backbone for all my minigame plugins within this setup.)
+
 [Forked] NoteBlockAPI (HBPVP-Core Dependency for playing custom NoteBlock themes - i.e win/draw/lose jingles, and even custom soundtracks)
 
 Design Doc (Being updated as the design evolves): https://docs.google.com/document/d/1yxL2iu_Sn1XQJ-Y1-37pz-hk-nA9N_6OHKiqB0K0RHo/edit?usp=sharing
