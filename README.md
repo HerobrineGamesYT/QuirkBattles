@@ -16,8 +16,10 @@ Quirk Battles uses GameCore's class system, which allow for you to develop custo
 A quick version of the game has already been spun up which allows you to 1v1 with two quirks - One For All and Explosion.
 A refactor is currently in progress which will make the abilities for Quirks work similar to [DeltaCraft](https://github.com/HerobrineGamesYT/DeltaCraft) Item Abilities.
 
-Gameplay: https://youtu.be/e2yh3xGOciY
-          https://youtu.be/35_uFmmSXLY
+A custom noteblock remix of You Say Run from the My Hero Academia OST has been created. You can hear it in the background of all of the gameplay clips.
+Gameplay:
+-  https://youtu.be/e2yh3xGOciY
+-  https://youtu.be/35_uFmmSXLY
 
 Currently Developed Quirks:
 
@@ -47,7 +49,7 @@ Currently Developed Quirks:
   OFA Damage Calculation: 10 + (10*Power)
 
   For example, if a player does a Shoot Style attack at 30%, and the game decides they should get hurt, the player will take 13 damage.
-  If the player decided to attack at 100%, then the player will be GURANTEED to take 20 damage, which could be devastating depending on how the fight is going- but it could be worth sacrificing your HP for a full-power attack in some situations.
+  Suppose the player decided to attack at 100%. In that case, the player will be GUARANTEED to take 20 damage, which could be devastating depending on how the fight is going- but it could be worth sacrificing your HP for a full-power attack in some situations.
 
   Note: The self-damage still goes under the damage reduction calculation from the player's defense.
 
