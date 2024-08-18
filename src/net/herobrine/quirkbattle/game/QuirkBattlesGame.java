@@ -98,7 +98,8 @@ public class QuirkBattlesGame {
                 if (player != player1) {
                     Team opp = board.registerNewTeam("opponent");
                     opp.addEntry(ChatColor.RED.toString());
-                    opp.setPrefix(HerobrinePVPCore.getFileManager().getRank(player1).getColor() + player1.getName());
+                    String name  = player1.getName().substring(0, Math.min(player1.getName().length(), 13));
+                    opp.setPrefix(HerobrinePVPCore.getFileManager().getRank(player1).getColor() + name);
                     opp.setSuffix(" " + ChatColor.GREEN + "100" + ChatColor.RED + "❤");
                     obj.getScore(ChatColor.RED.toString()).setScore(3);
                 }
@@ -152,7 +153,6 @@ public class QuirkBattlesGame {
         getStats(player).setHealth(newHealthReal);
         //double healthPercent = (double)newHealthReal / (double)maxHealth;
         //double playerHealth = player.getMaxHealth() * healthPercent;
-
 
         //if(playerHealth != 0) player.setHealth(playerHealth);
     }
