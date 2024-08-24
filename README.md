@@ -18,8 +18,7 @@ Design Doc (Being updated as the design evolves): https://docs.google.com/docume
 
 Quirk Battles uses GameCore's class system, which allows you to develop customized classes for each game. 
 A quick version of the game has already been spun up, allowing you to 1v1 with two quirks - One For All and Explosion.
-A refactor is currently in progress which will make the abilities for Quirks work similar to [DeltaCraft](https://github.com/HerobrineGamesYT/DeltaCraft) Item Abilities. 
-The current stats system in Quirk Battles works just like it does in Deltacraft, with a custom PlayerStats class.
+The current stats and ability systems in Quirk Battles work just like in Deltacraft, with a custom PlayerStats and Ability class.
 A custom noteblock remix of You Say Run from the My Hero Academia OST has been created. You can hear it in the background of all of the gameplay clips.
 Gameplay:
 -  https://youtu.be/e2yh3xGOciY
@@ -108,3 +107,39 @@ Currently Developed Quirks:
     Cooldown: 20s
     Stamina Gain Per Explosion Hit: 5%
 
+Hardening:
+
+Demonstration: https://www.youtube.com/watch?v=WOULCdGtsMU
+
+  Health: 225
+
+  Base Damage: 3
+  
+  Defense: 50
+
+  Soak up damage to gain stamina to transform into a tanky high-damage fighter!
+
+  Stamina Gain Per 5 Damage Taken: 2%
+
+  Abilities:
+
+  Sharp Claw: Power up your next 3 hits with increased damage by sharpening your fists!
+
+    Stamina Cost: 20%
+    Damage Increase: 3
+    Cooldown: 10s
+
+   Stone Charge: Temporarily increase your speed and defense, allowing you to charge into a player without a care!
+
+     Stamina Cost: 30%
+     Damage: 20
+     Defense Boost: +50
+     Cooldown: 15s
+
+  Unbreakable: Push yourself to your absolute limits! Temporarily gain a massive defense boost and sharpen all of your attacks!
+
+    Stamina Cost: 60%
+    Defense Boost: +75
+    Duration: 10s
+    Cooldown: 40s
+  
