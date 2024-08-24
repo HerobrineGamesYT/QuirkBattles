@@ -3,10 +3,13 @@ package net.herobrine.quirkbattle.event;
 import net.herobrine.core.HerobrinePVPCore;
 import net.herobrine.core.LevelRewards;
 import net.herobrine.gamecore.*;
+import net.herobrine.gamecore.Class;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.hero.Explosion;
+import net.herobrine.quirkbattle.game.quirks.hero.Hardening;
 import net.herobrine.quirkbattle.game.quirks.hero.OneForAll;
+import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
@@ -60,6 +63,12 @@ public class QuirkBattlesListener implements Listener {
                 if(!(newHealth <= 0)) {
                     arena.getQuirkBattleGame().getStats(player).setHealth(newHealth);
                     arena.getQuirkBattleGame().updatePlayerStats(player);
+
+                    if (arena.getClass(player).equals(ClassTypes.HARDENING)) {
+                        // Potential Nerf: Damage -> True Damage = Less Stamina Gained.
+                        Hardening hardening = (Hardening) arena.getClasses().get(player.getUniqueId());
+                        hardening.giveStaminaBoostForDamage(damage);
+                    }
                 }
                 else {
                     player.sendMessage(ChatColor.RED + "You've been knocked out!");
@@ -88,24 +97,25 @@ public class QuirkBattlesListener implements Listener {
             if (Manager.isPlaying(player)) arena = Manager.getArena(player);
 
             else return;
-
             if (arena.getGame().equals(Games.QUIRK_BATTTLE) && arena.getState().equals(GameState.LIVE)) {
+                Class kit = arena.getClasses().get(player.getUniqueId());
+                Quirk quirk = (Quirk) kit;
                 e.setCancelled(true);
                 e.setDamage(0);
                 if (arena.getType().equals(GameType.ONE_V_ONE)) {
                     double damage = arena.getClass(player).getBaseDamage();
+                    if (quirk.shouldUseAbilityAttack()) {
+                        quirk.useAbilityAttack(target);
+                        return;
+                    }
                     if (hasPowerUpClass(player, arena)) {
                         player.sendMessage(ChatColor.GREEN + "You just attacked someone while using One For All!");
                         damage =  damage + (arena.getClass(player).getBaseDamage() * ((double) arena.getQuirkBattleGame().getStats(player).getMana() /100));;
                         OneForAll ofa = (OneForAll) arena.getClasses().get(player.getUniqueId());
                         ofa.resetPower();
                     }
-                    if (arena.getClass(player).equals(ClassTypes.EXPLOSION)) {
+                   else if (arena.getClass(player).equals(ClassTypes.EXPLOSION)) {
                         Explosion explosion = (Explosion) arena.getClasses().get(player.getUniqueId());
-                        if (explosion.isExplosivePunch()) {
-                            explosion.explodeForPunch(target.getLocation());
-                            return;
-                        }
                         explosion.giveStaminaBoost(2);
                     }
                     @SuppressWarnings("deprecation")
@@ -118,21 +128,23 @@ public class QuirkBattlesListener implements Listener {
                 else {
                     if (arena.getTeam(player) != arena.getTeam(target)) {
                         double damage = arena.getClass(player).getBaseDamage();
+                        if (quirk.shouldUseAbilityAttack()) {
+                            quirk.useAbilityAttack(target);
+                            return;
+                        }
                         if (hasPowerUpClass(player, arena)) {
                             damage =  damage + (arena.getClass(player).getBaseDamage() * ((double) arena.getQuirkBattleGame().getStats(player).getMana() /100));;
                             OneForAll ofa = (OneForAll) arena.getClasses().get(player.getUniqueId());
                             ofa.resetPower();
                         }
-                        if (arena.getClass(player).equals(ClassTypes.EXPLOSION)) {
+                       else if (arena.getClass(player).equals(ClassTypes.EXPLOSION)) {
                             Explosion explosion = (Explosion) arena.getClasses().get(player.getUniqueId());
-                            if (explosion.isExplosivePunch()) {
-                                explosion.explodeForPunch(target.getLocation());
-                                return;
-                            }
                             explosion.giveStaminaBoost(2);
                         }
                         @SuppressWarnings("deprecation")
-                        EntityDamageEvent event = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.ENTITY_ATTACK, damage);
+                        EntityDamageEvent event = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, damage);
+                        arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.GENERAL_ATTACK);
+                        arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
                         Bukkit.getPluginManager().callEvent(event);
                         target.setLastDamageCause(event);
                     }
@@ -159,40 +171,61 @@ public class QuirkBattlesListener implements Listener {
         }
        switch (arena.getQuirkBattleGame().getCustomDeathCause().get(player.getUniqueId())) {
            case SHOOT_STYLE:
-               if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.GRAY + " just fell victim to " + HerobrinePVPCore.getFileManager().getRank(killer).getColor() + killer.getName() + "'s " + HerobrinePVPCore.translateString("&a&lShoot Style &r&7attack!"));
+               if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getRankColor(player) + player.getName() + ChatColor.GRAY + " just fell victim to " + HerobrinePVPCore.getRankColor(killer) + killer.getName() + "'s " + HerobrinePVPCore.translateString("&a&lShoot Style &r&7attack!"));
                else arena.sendMessage(arena.getTeam(player).getColor() + player.getName() + ChatColor.GRAY + " just fell victim to "+ arena.getTeam(killer).getColor() + killer.getName() + "'s " + HerobrinePVPCore.translateString("&a&lShoot Style&r &7attack!"));
                break;
            case DETRIOT_SMASH:
-               if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + HerobrinePVPCore.translateString(" &7just got &6&lDETROIT SMASH'D &r&7by ") + HerobrinePVPCore.getFileManager().getRank(killer).getColor() + killer.getName());
+               if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getRankColor(player) + player.getName() + HerobrinePVPCore.translateString(" &7just got &6&lDETROIT SMASH'D &r&7by ") + HerobrinePVPCore.getRankColor(killer) + killer.getName());
                else arena.sendMessage(arena.getTeam(player).getColor() + player.getName() + HerobrinePVPCore.translateString(" &7just got &6&lDETROIT SMASH'D &r&7by ") + arena.getTeam(player).getColor() + killer.getName());
                break;
            case ONE_FOR_ALL_SELF:
-               if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.GRAY + " couldn't handle the power of " + HerobrinePVPCore.translateString("&6&lOne For All"));
+               if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getRankColor(player) + player.getName() + ChatColor.GRAY + " couldn't handle the power of " + HerobrinePVPCore.translateString("&6&lOne For All"));
                else arena.sendMessage(arena.getTeam(player).getColor() + player.getName() + ChatColor.GRAY + " couldn't handle the power of " + HerobrinePVPCore.translateString("&6&lOne For All"));
                break;
            case GENERAL_ATTACK:
-               if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(killer).getColor() + killer.getName() + ChatColor.GRAY + " eliminated " + HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.GRAY + " with their pure strength.");
+               if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getRankColor(killer) + killer.getName() + ChatColor.GRAY + " eliminated " + HerobrinePVPCore.getRankColor(player) + player.getName() + ChatColor.GRAY + " with their pure strength.");
                else arena.sendMessage(arena.getTeam(killer).getColor() + killer.getName() + ChatColor.GRAY + " eliminated " + arena.getTeam(player).getColor() + player.getName() + ChatColor.GRAY + " with their pure strength.");
                break;
            case HOWITZER_IMPACT:
-               if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(killer).getColor() + killer.getName() + ChatColor.GRAY + " just eliminated " + HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.GRAY + " with " + HerobrinePVPCore.translateString("&6&lHOWITZER IMPACT!"));
+               if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getRankColor(killer) + killer.getName() + ChatColor.GRAY + " just eliminated " + HerobrinePVPCore.getRankColor(player) + player.getName() + ChatColor.GRAY + " with " + HerobrinePVPCore.translateString("&6&lHOWITZER IMPACT!"));
                else arena.sendMessage(arena.getTeam(killer).getColor() + killer.getName() + ChatColor.GRAY + " just eliminated " + arena.getTeam(player).getColor() + player.getName() + ChatColor.GRAY + " with " + HerobrinePVPCore.translateString("&6&lHOWITZER IMPACT!"));
                break;
            case EXPLOSION_DASH:
-               if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.translateString("&6&lBOOM! ") + HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.GRAY + " just ate " + HerobrinePVPCore.getFileManager().getRank(killer).getColor() + killer.getName() + ChatColor.GRAY + "'s explosive dust.");
+               if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.translateString("&6&lBOOM! ") + HerobrinePVPCore.getRankColor(player) + player.getName() + ChatColor.GRAY + " just ate " + HerobrinePVPCore.getRankColor(killer) + killer.getName() + ChatColor.GRAY + "'s explosive dust.");
                else arena.sendMessage(HerobrinePVPCore.translateString("&6&lBOOM! ") + arena.getTeam(player).getColor() + player.getName() + ChatColor.GRAY + " just ate " + arena.getTeam(killer).getColor() + killer.getName() + ChatColor.GRAY + "'s explosive dust.");
                break;
            case EXPLOSION_PUNCH:
-               if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.translateString("&6&lEXPLOSION! ") + HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.GRAY + " just got exploded by " + HerobrinePVPCore.getFileManager().getRank(killer).getColor() + killer.getName());
+               if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.translateString("&6&lEXPLOSION! ") + HerobrinePVPCore.getRankColor(player) + player.getName() + ChatColor.GRAY + " just got exploded by " + HerobrinePVPCore.getRankColor(killer) + killer.getName());
                else arena.sendMessage(HerobrinePVPCore.translateString("&6&lEXPLOSION! ") + arena.getTeam(player).getColor() + player.getName() + ChatColor.GRAY + " just got exploded by " + arena.getTeam(killer).getColor() + killer.getName());
                break;
+           case SHARP_CLAW:
+               Hardening killClass =  (Hardening) arena.getClasses().get(killer.getUniqueId());
+               boolean isUnbreakable = killClass.isUnbreakable();
+               if (arena.getType().equals(GameType.ONE_V_ONE)) {
+                   if (isUnbreakable) arena.sendMessage(HerobrinePVPCore.getRankColor(player) + player.getName() + HerobrinePVPCore.translateString(" &7couldn't handle the &c&lUNBREAKABLE &r&7power of ") + HerobrinePVPCore.getRankColor(killer) + killer.getName() + ChatColor.GRAY + "!");
+                   else arena.sendMessage(HerobrinePVPCore.getRankColor(player) + player.getName() + HerobrinePVPCore.translateString(" &7just got &cclawed&r &7by ") + HerobrinePVPCore.getRankColor(killer) + killer.getName());
+               }
+               else {
+                   if (isUnbreakable) arena.sendMessage(arena.getTeam(player).getColor() + player.getName() + HerobrinePVPCore.translateString(" &7couldn't handle the &c&lUNBREAKABLE &r&7power of ") + arena.getTeam(killer).getColor() + killer.getName() + ChatColor.GRAY + "!");
+                   else arena.sendMessage(arena.getTeam(player).getColor() + player.getName() + HerobrinePVPCore.translateString(" &7just got &cclawed&r &7by ") + arena.getTeam(killer).getColor() + killer.getName());
+               }
+               break;
+           case STONE_CHARGE:
+               if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.translateString("&c&lCLACK! ") + HerobrinePVPCore.getRankColor(player) + player.getName() + HerobrinePVPCore.translateString(" &7 just got splattered by ") + HerobrinePVPCore.getRankColor(killer) + killer.getName() + HerobrinePVPCore.translateString("&7's &c&lStone Charge&r&7!"));
+               else arena.sendMessage(HerobrinePVPCore.translateString("&c&lCLACK! ") + arena.getTeam(player).getColor() + player.getName() + HerobrinePVPCore.translateString(" &7 just got splattered by ") + arena.getTeam(killer).getColor() + killer.getName() + HerobrinePVPCore.translateString("&7's &c&lStone Charge&r&7!"));
+            break;
            case OUTSIDE_MAP:
                if (killer == null) {
-                   if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.GRAY + " has died.");
+                   if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getRankColor(player) + player.getName() + ChatColor.GRAY + " left the arena.");
                    else arena.sendMessage(arena.getTeam(player).getColor() + player.getName() + ChatColor.GRAY + " left the arena.");
                }
+               else {
+                   if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getRankColor(player) + player.getName() + ChatColor.GRAY + " left the arena while fighting " + HerobrinePVPCore.getRankColor(killer) + killer.getName());
+                   else arena.sendMessage(arena.getTeam(player).getColor() + player.getName() + ChatColor.GRAY + " left the arena while fighting " + arena.getTeam(killer).getColor() + killer.getName());
+               }
+               break;
            default:
-               if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.GRAY + " has died.");
+               if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getRankColor(player) + player.getName() + ChatColor.GRAY + " has died.");
                else arena.sendMessage(arena.getTeam(player).getColor() + player.getName() + ChatColor.GRAY + " has died.");
                return;
 

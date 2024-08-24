@@ -6,9 +6,9 @@ import net.herobrine.core.Songs;
 import net.herobrine.gamecore.*;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.files.Config;
+import net.herobrine.quirkbattle.game.quirks.abilities.QuirkAbilityManager;
 import net.herobrine.quirkbattle.game.stats.PlayerStats;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -38,13 +38,19 @@ public class QuirkBattlesGame {
     private ArrayList<UUID> alivePlayers = new ArrayList<>();
 
     private Region region;
+    private QuirkAbilityManager abilityManager;
 
     private boolean areRegionsInitialized;
+
+    private WorldBorder border;
+
 
     public QuirkBattlesGame(Arena arena) {
         this.arena = arena;
         this.playerStatsMap = new HashMap<>();
         this.areRegionsInitialized = false;
+        this.abilityManager = new QuirkAbilityManager(arena.getID());
+        this.border = arena.getSpawn().getWorld().getWorldBorder();
     }
 
     public void initRegion() {
@@ -58,6 +64,7 @@ public class QuirkBattlesGame {
         customDeathCause.clear();
         lastAbilityAttacker.clear();
         alivePlayers.clear();
+        resetWorldBorder();
         if (!areRegionsInitialized) initRegion();
         collisionTicks = 0;
         seconds = 210;
@@ -134,6 +141,8 @@ public class QuirkBattlesGame {
         startTimer();
         startRegionCollision();
     }
+
+    public QuirkAbilityManager getAbilityManager() {return abilityManager;}
 
     public void regenPlayerHealth(Player player) {
         int randomNumber = ThreadLocalRandom.current().nextInt(1, 2);
@@ -212,6 +221,7 @@ public class QuirkBattlesGame {
 
     public void startEnding(Player winner) {
         arena.setState(GameState.LIVE_ENDING);
+        resetWorldBorder();
         for (UUID uuid : arena.getPlayers()) {
 
             Player player = Bukkit.getPlayer(uuid);
@@ -264,6 +274,9 @@ public class QuirkBattlesGame {
                     startEnding(null);
                     return;
                 }
+
+                if (seconds == 90) startWorldBorder();
+
                 String time = String.format("%02d:%02d", seconds / 60, seconds % 60);
                 for (UUID uuid : arena.getPlayers()) {
                     Player player = Bukkit.getPlayer(uuid);
@@ -283,6 +296,28 @@ public class QuirkBattlesGame {
         }.runTaskTimer(QuirkBattlesPlugin.getInstance(), 0L, 20L);
     }
 
+    public void startWorldBorder() {
+        // Will be configurable once it's decided this feature will be kept.
+        border.setSize(100);
+        arena.playSound(Sound.ENDERDRAGON_GROWL);
+        arena.sendMessage(HerobrinePVPCore.translateString("&c&lThe World Border is now shrinking..."));
+        arena.sendTitle("&c&lCAUTION", "&eThe border is shrinking!", 0,1,0);
+        border.setSize(10, 60);
+    }
+
+    public void resetWorldBorder() {
+        border.setCenter(1040.5, -447.5);
+        border.setSize(1000);
+    }
+
+    public boolean isOutsideOfBorder(Player p) {
+        Location loc = p.getLocation();
+        WorldBorder border = p.getWorld().getWorldBorder();
+        double size = border.getSize()/2;
+        Location center = border.getCenter();
+        double x = loc.getX() - center.getX(), z = loc.getZ() - center.getZ();
+        return ((x > size || (-x) > size) || (z > size || (-z) > size));
+    }
 
     public void startRegionCollision() {
         new BukkitRunnable() {
@@ -300,7 +335,8 @@ public class QuirkBattlesGame {
 
                 for (UUID uuid: arena.getPlayers()) {
                     Player player = Bukkit.getPlayer(uuid);
-                    if (!region.containsLocation(player.getLocation()) && collisionTicks % 10 == 0) {
+                    if (!region.containsLocation(player.getLocation()) || isOutsideOfBorder(player)) {
+                        if (collisionTicks % 10 != 0) continue;
                         EntityDamageEvent event = new EntityDamageEvent(player, EntityDamageEvent.DamageCause.CUSTOM, 50);
                         customDeathCause.put(player.getUniqueId(), CustomDeathCause.OUTSIDE_MAP);
                         player.sendMessage(ChatColor.RED + "Get back in the playing area!");
