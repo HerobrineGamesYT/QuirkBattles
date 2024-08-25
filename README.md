@@ -4,7 +4,7 @@ A PVP gamemode where players fight each other with custom classes with special a
 
 There are multiple different modes in planning, such as 1v1, 2v2, 3v3, 4v4, FFA, and Heroes VS Villains.
 
-Currently, two quirks are fully developed and the 1v1 mode is fully playable.
+Currently, three quirks are fully developed and the 1v1 mode is fully playable.
 
 Dependencies:
 
