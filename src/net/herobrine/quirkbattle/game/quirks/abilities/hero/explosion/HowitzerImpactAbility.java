@@ -8,6 +8,8 @@ import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.hero.Explosion;
+import net.minecraft.server.v1_8_R3.EntityPlayer;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -48,7 +50,7 @@ public class HowitzerImpactAbility extends Ability {
                     return;
                 }
 
-                if (player.isOnGround()) {
+                if (player.isOnGround() && ticks > 10) {
                     cancel();
                     player.getLocation().getWorld().createExplosion(player.getLocation().getX(),
                             player.getLocation().getY(), player.getLocation().getZ(), (float)ability.getRadius(), false, false);
@@ -89,7 +91,7 @@ public class HowitzerImpactAbility extends Ability {
                             Arena arena = Manager.getArena(player);
 
                             if (arena.getType().equals(GameType.ONE_V_ONE)) {
-                                if (pl1 != player && !hasHit.contains(pl1.getUniqueId())) {
+                                if (pl1 != player && !hasHit.contains(pl1.getUniqueId()) && arena.getQuirkBattleGame().getAlivePlayers().contains(pl1.getUniqueId())) {
                                     hasHit.add(pl1.getUniqueId());
                                     doDamageTo(player, pl1, damage, CustomDeathCause.HOWITZER_IMPACT);
                                     pl1.sendMessage(HerobrinePVPCore.translateString("&6" + player.getName() + "&a just hit you with an explosion their &6&lHowitzer Impact &r&aattack!"));
@@ -98,7 +100,7 @@ public class HowitzerImpactAbility extends Ability {
                                 }
                             }
                             else if (pl1 != player && arena.getTeam(pl1) != arena.getTeam(player)
-                                    && !hasHit.contains(pl1.getUniqueId())) {
+                                    && !hasHit.contains(pl1.getUniqueId()) && arena.getQuirkBattleGame().getAlivePlayers().contains(pl1.getUniqueId())) {
                                 hasHit.add(pl1.getUniqueId());
                                 doDamageTo(player, pl1, damage, CustomDeathCause.HOWITZER_IMPACT);
                                 pl1.sendMessage(HerobrinePVPCore.translateString(arena.getTeam(player).getColor() + player.getName() + "&a just hit you with an explosion from their &&6lHowitzer Impact &r&aattack!"));

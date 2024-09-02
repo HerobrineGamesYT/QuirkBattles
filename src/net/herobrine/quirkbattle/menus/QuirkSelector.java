@@ -82,13 +82,13 @@ public class QuirkSelector implements Listener {
             classString = classString.replaceAll("\\s", "");
             classString = classString.replaceAll("BATTLE", "");
 
-            ClassTypes type = ClassTypes.valueOf(classString);
+            ClassTypes type = null;
             if (e.getCurrentItem().getType().equals(Material.BLAZE_ROD)) type = ClassTypes.ICYHOT;
+            else type = ClassTypes.valueOf(classString);
 
             if (Manager.hasKit(player) && Manager.getKit(player).equals(type)) {
                 player.sendMessage(ChatColor.GREEN + "You already have this quirk selected!");
             } else {
-
                 if (type.isUnlockable() && !HerobrinePVPCore.getFileManager().isItemUnlocked(ItemTypes.CLASS,
                         type.toString(), player.getUniqueId())) {
                     player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f, 1f);

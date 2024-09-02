@@ -89,7 +89,7 @@ public class StoneChargeAbility extends Ability implements SpecialCase {
                             Arena arena = Manager.getArena(player);
 
                             if (arena.getType().equals(GameType.ONE_V_ONE)) {
-                                if (pl1 != player && !hasHit.contains(player.getUniqueId())) {
+                                if (pl1 != player && !hasHit.contains(player.getUniqueId()) && arena.getQuirkBattleGame().getAlivePlayers().contains(pl1.getUniqueId())) {
                                     hasHit.add(player.getUniqueId());
                                     doDamageTo(player, pl1, ability.getDamage(), CustomDeathCause.STONE_CHARGE);
                                     playHitFX(pl1.getLocation());
@@ -97,7 +97,7 @@ public class StoneChargeAbility extends Ability implements SpecialCase {
                                     player.sendMessage(HerobrinePVPCore.translateString("&aYou just hit &6" + pl1.getName() + "&a with your &l" + ability.getDisplay() + " &r&aattack!"));
                                 }
                             } else if (pl1 != player && arena.getTeam(pl1) != arena.getTeam(player)
-                                    && !hasHit.contains(player.getUniqueId())) {
+                                    && !hasHit.contains(player.getUniqueId()) && arena.getQuirkBattleGame().getAlivePlayers().contains(pl1.getUniqueId())) {
                                 hasHit.add(player.getUniqueId());
                                 doDamageTo(player, pl1, ability.getDamage(), CustomDeathCause.STONE_CHARGE);
                                 playHitFX(pl1.getLocation());

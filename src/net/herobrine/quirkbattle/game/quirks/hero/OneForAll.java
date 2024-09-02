@@ -8,8 +8,11 @@ import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
+import net.herobrine.quirkbattle.game.quirks.abilities.AbilitySets;
 import net.herobrine.quirkbattle.game.stats.PlayerStats;
 import net.herobrine.quirkbattle.util.Quirk;
+import net.herobrine.quirkbattle.util.Switchable;
+import net.minecraft.server.v1_8_R3.AttributeRanged;
 import net.minecraft.server.v1_8_R3.EnumParticle;
 import net.minecraft.server.v1_8_R3.PacketPlayOutWorldParticles;
 import org.bukkit.*;
@@ -34,17 +37,23 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class OneForAll extends Class implements Quirk {
+public class OneForAll extends Class implements Quirk, Switchable {
     public OneForAll(UUID uuid) {
         super(uuid, ClassTypes.ONEFORALL);
         arena = Manager.getArena(Bukkit.getPlayer(uuid));
         this.abilities = new ArrayList<>();
+        this.availableSets = new AbilitySets[] {AbilitySets.ONE_FOR_ALL, AbilitySets.OFA_SWITCH_TEST};
     }
 
     PlayerStats stats;
     Arena arena;
     long lastStaminaCharge = 0;
     List<Ability> abilities;
+
+    boolean isSwitcherActive = false;
+    AbilitySets currentSet;
+    AbilitySets[] availableSets;
+
     @Override
     public void onStart(Player player) {
     stats = new PlayerStats(player.getUniqueId(),200, 200, 50, 0, 100, 6);
@@ -56,11 +65,23 @@ public class OneForAll extends Class implements Quirk {
 
     player.getInventory().setHeldItemSlot(0);
     player.getInventory().setItem(0, defaultHeldItem.build());
-    abilities.add(arena.getQuirkBattleGame().getAbilityManager().registerAbility(Abilities.DETROIT_SMASH, this, 2));
-    abilities.add(arena.getQuirkBattleGame().getAbilityManager().registerAbility(Abilities.SHOOT_STYLE, this, 3));
-    abilities.add(arena.getQuirkBattleGame().getAbilityManager().registerAbility(Abilities.AIR_PROPULSION, this, 4));
+    registerAbilities(AbilitySets.ONE_FOR_ALL);
     }
 
+    @Override
+    public void registerAbilities(AbilitySets set) {
+        this.currentSet = set;
+        int i = 2;
+        for (Abilities ability : set.getAbilities()) {
+            abilities.add(arena.getQuirkBattleGame().getAbilityManager().registerAbility(ability, this, i));
+            i++;
+        }
+
+        //if (!isSwitcherActive) {
+        //    arena.getQuirkBattleGame().getAbilityManager().registerAbility(Abilities.OFA_ABILITY_SWITCH_TEST, this, i);
+        //    isSwitcherActive = true;
+        //}
+    }
 
     public void resetPower() {
         Player player = Bukkit.getPlayer(uuid);
@@ -135,4 +156,45 @@ public class OneForAll extends Class implements Quirk {
     // This method goes unused in OFA because it doesn't have any abilities that require it.
     @Override
     public void useAbilityAttack(Player target) {}
+
+    public void switchAbilitySet(AbilitySets set) {
+        if (secondaryAbilities.isEmpty()) {
+            for (Ability ability : abilities) {
+                secondaryAbilities.add(ability);
+                ability.setActive(false);
+            }
+            abilities.clear();
+            registerAbilities(set);
+        }
+        else {
+            for (Ability ability : abilities) {
+                ability.setActive(false);
+                transferList.add(ability);
+            }
+            abilities.clear();
+            for (Ability ability : secondaryAbilities) {
+                ability.setActive(true);
+                abilities.add(ability);
+            }
+            secondaryAbilities.clear();
+            secondaryAbilities.addAll(transferList);
+            transferList.clear();
+
+            for (Ability ability : secondaryAbilities) {
+                ability.setActive(false);
+            }
+
+            this.currentSet = set;
+        }
+    }
+
+    @Override
+    public AbilitySets getCurrentSet() {
+        return currentSet;
+    }
+
+    @Override
+    public AbilitySets[] getAvailableSets() {
+        return availableSets;
+    }
 }

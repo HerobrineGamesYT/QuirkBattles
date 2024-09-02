@@ -21,8 +21,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import java.util.Random;
 
 public class QuirkBattlesListener implements Listener {
 
@@ -47,8 +50,8 @@ public class QuirkBattlesListener implements Listener {
                 double damage = e.getDamage();
                 e.setCancelled(true);
                 if (damage == 0) return;
-                if (e.getCause().equals(EntityDamageEvent.DamageCause.FALL) || e.getCause().equals(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) || e.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_ATTACK)) return;
-                player.damage(0);
+                if (!e.getCause().equals(EntityDamageEvent.DamageCause.CUSTOM)) return;
+                if (!arena.getQuirkBattleGame().getAlivePlayers().contains(player.getUniqueId())) return;
                 double damageReduction = (double)defense / ((double)defense + 100);
                 int trueDamage;
                 if (defense != 0) trueDamage = (int)Math.round(damage - (damage * damageReduction));
@@ -59,6 +62,7 @@ public class QuirkBattlesListener implements Listener {
                     player.sendMessage(ChatColor.GREEN + "Custom Cause: " + arena.getQuirkBattleGame().getCustomDeathCause().get(player.getUniqueId()));
                     if (arena.getQuirkBattleGame().getLastAbilityAttacker().containsKey(player.getUniqueId())) player.sendMessage(ChatColor.GREEN + "Last Attacker: " + Bukkit.getPlayer(arena.getQuirkBattleGame().getLastAbilityAttacker().get(player.getUniqueId())).getName());
                 }
+                player.damage(0);
                 int newHealth = health - trueDamage;
                 if(!(newHealth <= 0)) {
                     arena.getQuirkBattleGame().getStats(player).setHealth(newHealth);
@@ -71,11 +75,16 @@ public class QuirkBattlesListener implements Listener {
                     }
                 }
                 else {
+                    if (!arena.getQuirkBattleGame().getAlivePlayers().contains(player.getUniqueId())) return;
                     player.sendMessage(ChatColor.RED + "You've been knocked out!");
                     handleDeath(player, Bukkit.getPlayer(arena.getQuirkBattleGame().getLastAbilityAttacker().get(player.getUniqueId())), arena);
+                    arena.getQuirkBattleGame().getStats(player).setHealth(0);
                     Bukkit.getScheduler().runTask(QuirkBattlesPlugin.getInstance(), () -> arena.setSpectator(player));
                     arena.getQuirkBattleGame().getAlivePlayers().remove(player.getUniqueId());
-                    arena.getQuirkBattleGame().isGameOver();
+                    player.setHealth(20);
+                    player.setMaxHealth(20);
+                   if (arena.getType().equals(GameType.ONE_V_ONE)) arena.getQuirkBattleGame().isGameOver();
+                   else arena.getQuirkBattleGame().removeAlivePlayer(arena.getTeam(player));
                 }
                 e.setDamage(0);
               //  double healthPercent = (double)newHealth / (double)maxHealth;
@@ -101,8 +110,8 @@ public class QuirkBattlesListener implements Listener {
                 Class kit = arena.getClasses().get(player.getUniqueId());
                 Quirk quirk = (Quirk) kit;
                 e.setCancelled(true);
-                e.setDamage(0);
                 if (arena.getType().equals(GameType.ONE_V_ONE)) {
+                    e.setDamage(0);
                     double damage = arena.getClass(player).getBaseDamage();
                     if (quirk.shouldUseAbilityAttack()) {
                         quirk.useAbilityAttack(target);
@@ -127,6 +136,7 @@ public class QuirkBattlesListener implements Listener {
                 }
                 else {
                     if (arena.getTeam(player) != arena.getTeam(target)) {
+                        e.setDamage(0);
                         double damage = arena.getClass(player).getBaseDamage();
                         if (quirk.shouldUseAbilityAttack()) {
                             quirk.useAbilityAttack(target);
@@ -147,6 +157,10 @@ public class QuirkBattlesListener implements Listener {
                         arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
                         Bukkit.getPluginManager().callEvent(event);
                         target.setLastDamageCause(event);
+                    }
+                    else {
+                        e.setCancelled(true);
+                        player.sendMessage(ChatColor.RED + "You cannot hurt your teammates!");
                     }
                 }
             }
@@ -232,6 +246,25 @@ public class QuirkBattlesListener implements Listener {
        }
     }
 
+
+    @EventHandler
+    public void onInteract(PlayerInteractEvent e) {
+        Player player = e.getPlayer();
+        if (!Manager.isPlaying(player)) return;
+        Arena arena = Manager.getArena(player);
+        if (arena.getGame() != Games.QUIRK_BATTTLE) return;
+        if (player.getItemInHand().getItemMeta() != null
+                && player.getItemInHand().getItemMeta().getDisplayName() != null) {
+            if (player.getItemInHand().getItemMeta().getDisplayName().equals(ChatColor.GREEN + "Spectate")) {
+                Random rand = new Random();
+                int alivePlayersSize = arena.getQuirkBattleGame().getAlivePlayers().size();
+                int randomIndex = rand.nextInt(alivePlayersSize);
+                Player randPlayer = Bukkit.getPlayer(arena.getQuirkBattleGame().getAlivePlayers().get(randomIndex));
+                player.teleport(randPlayer);
+                player.sendMessage(ChatColor.GREEN + "You are now spectating " + ChatColor.GOLD + randPlayer.getName());
+            }
+        }
+    }
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
         if (Manager.isPlaying(e.getEntity())) {

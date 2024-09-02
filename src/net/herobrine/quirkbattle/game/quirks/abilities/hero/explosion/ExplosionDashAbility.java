@@ -63,7 +63,7 @@ public class ExplosionDashAbility extends Ability {
                             Arena arena = Manager.getArena(player);
 
                             if (arena.getType().equals(GameType.ONE_V_ONE)) {
-                                if (pl1 != player && !hasHit.contains(pl1.getUniqueId())) {
+                                if (pl1 != player && !hasHit.contains(pl1.getUniqueId()) && arena.getQuirkBattleGame().getAlivePlayers().contains(pl1.getUniqueId())) {
                                     hasHit.add(pl1.getUniqueId());
                                     doDamageTo(player, pl1, ability.getDamage(), CustomDeathCause.EXPLOSION_DASH);
                                     pl1.sendMessage(HerobrinePVPCore.translateString("&6" + player.getName() + "&a just hit you with their &6&lExplosion Dash &r&aattack!"));
@@ -71,7 +71,7 @@ public class ExplosionDashAbility extends Ability {
                                 }
                             }
                             else if (pl1 != player && arena.getTeam(pl1) != arena.getTeam(player)
-                                    && !hasHit.contains(pl1.getUniqueId())) {
+                                    && !hasHit.contains(pl1.getUniqueId()) && arena.getQuirkBattleGame().getAlivePlayers().contains(pl1.getUniqueId())) {
                                 hasHit.add(pl1.getUniqueId());
                                 doDamageTo(player, pl1, ability.getDamage(), CustomDeathCause.EXPLOSION_DASH);
                                 pl1.sendMessage(HerobrinePVPCore.translateString(arena.getTeam(player).getColor() + player.getName() + "&a just hit you with their &&6lExplosion Dash &r&aattack!"));

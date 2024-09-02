@@ -68,7 +68,7 @@ public class ShootStyleAbility extends Ability {
                             Arena arena = Manager.getArena(player);
 
                             if (arena.getType().equals(GameType.ONE_V_ONE)) {
-                                if (pl1 != player && !hasHit.contains(player.getUniqueId())) {
+                                if (pl1 != player && !hasHit.contains(player.getUniqueId()) && arena.getQuirkBattleGame().getAlivePlayers().contains(pl1.getUniqueId())) {
                                     hasHit.add(player.getUniqueId());
                                     doDamageTo(player, pl1, ability.getDamage(), power, CustomDeathCause.SHOOT_STYLE);
                                     pl1.sendMessage(HerobrinePVPCore.translateString("&6" + player.getName() + "&a just hit you with their &lShoot Style &r&aattack at &6" + power + "% &aPower!"));
@@ -76,7 +76,7 @@ public class ShootStyleAbility extends Ability {
                                 }
                             }
                             else if (pl1 != player && arena.getTeam(pl1) != arena.getTeam(player)
-                                    && !hasHit.contains(player.getUniqueId())) {
+                                    && !hasHit.contains(player.getUniqueId()) && arena.getQuirkBattleGame().getAlivePlayers().contains(pl1.getUniqueId())) {
                                 hasHit.add(player.getUniqueId());
                                 doDamageTo(player, pl1, ability.getDamage(), power, CustomDeathCause.SHOOT_STYLE);
                                 pl1.sendMessage(HerobrinePVPCore.translateString(arena.getTeam(player).getColor() + player.getName() + "&a just hit you with their &lShoot Style &r&aattack at &6" + power + "% &aPower!"));

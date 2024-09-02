@@ -7,6 +7,7 @@ import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
+import net.herobrine.quirkbattle.game.quirks.abilities.AbilitySets;
 import net.herobrine.quirkbattle.game.stats.PlayerStats;
 import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.*;
@@ -127,7 +128,7 @@ public class Explosion extends Class implements Quirk {
                             Arena arena = Manager.getArena(player);
 
                             if (arena.getType().equals(GameType.ONE_V_ONE)) {
-                                if (pl1 != player && !hasHit.contains(pl1.getUniqueId())) {
+                                if (pl1 != player && !hasHit.contains(pl1.getUniqueId()) && arena.getQuirkBattleGame().getAlivePlayers().contains(pl1.getUniqueId())) {
                                     hasHit.add(pl1.getUniqueId());
                                     doDamageTo(player, pl1, getClassType().getBaseDamage() + 5, CustomDeathCause.EXPLOSION_PUNCH);
                                     pl1.sendMessage(HerobrinePVPCore.translateString("&6" + player.getName() + "&a just hit you with their &6&lExplosion Punch &r&aattack!"));
@@ -135,7 +136,7 @@ public class Explosion extends Class implements Quirk {
                                 }
                             }
                             else if (pl1 != player && arena.getTeam(pl1) != arena.getTeam(player)
-                                    && !hasHit.contains(pl1.getUniqueId())) {
+                                    && !hasHit.contains(pl1.getUniqueId()) && arena.getQuirkBattleGame().getAlivePlayers().contains(pl1.getUniqueId())) {
                                 hasHit.add(pl1.getUniqueId());
                                 doDamageTo(player, pl1, getClassType().getBaseDamage() + 5, CustomDeathCause.EXPLOSION_PUNCH);
                                 pl1.sendMessage(HerobrinePVPCore.translateString(arena.getTeam(player).getColor() + player.getName() + "&a just hit you with their &&6lExplosion Punch &r&aattack!"));
@@ -197,5 +198,10 @@ public class Explosion extends Class implements Quirk {
     @Override
     public void useAbilityAttack(Player target) {
         explodeForPunch(target.getLocation());
+    }
+
+    @Override
+    public void registerAbilities(AbilitySets set) {
+
     }
 }

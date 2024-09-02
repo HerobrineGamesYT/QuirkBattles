@@ -8,10 +8,9 @@ import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.stats.PlayerStats;
 import net.herobrine.quirkbattle.util.NBTReader;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import net.minecraft.server.v1_8_R3.EnumParticle;
+import net.minecraft.server.v1_8_R3.PacketPlayOutWorldParticles;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -56,6 +55,8 @@ public abstract class Ability implements Listener {
 
 
     protected PlayerStats stats;
+
+    protected boolean active;
     public Ability(Abilities ability, net.herobrine.gamecore.Class quirk, int id, int slot) {
         this.ability = ability;
         this.quirk = quirk;
@@ -65,6 +66,7 @@ public abstract class Ability implements Listener {
         this.uuid = quirk.getUUID();
         this.arena = Manager.getArena(id);
         this.stats = arena.getQuirkBattleGame().getStats(Bukkit.getPlayer(uuid));
+        this.active = true;
         Bukkit.getPluginManager().registerEvents(this, QuirkBattlesPlugin.getInstance());
 
     }
@@ -236,6 +238,7 @@ public abstract class Ability implements Listener {
                 public void run() {
                     if (arena.getState() != GameState.LIVE) return;
                     if (!arena.getQuirkBattleGame().getAlivePlayers().contains(player.getUniqueId())) return;
+                    if (!isActive()) return;
                     player.getInventory().setItem(slot, getItem());
                 }
             }.runTaskLater(QuirkBattlesPlugin.getInstance(), (long)time);
@@ -253,12 +256,16 @@ public abstract class Ability implements Listener {
                     cancel();
                     return;
                 }
-                if (seconds == 0) {
+                if (!isActive()) {
+                    seconds--;
+                    return;
+                }
+                if (seconds <= 0) {
                     player.getInventory().setItem(slot, getItem());
                     cancel();
                     return;
                 }
-                player.getInventory().getItem(slot).setAmount(seconds);
+                player.getInventory().setItem(slot, stack.setAmount(seconds).build());
                 seconds--;
             }
         }.runTaskTimer(QuirkBattlesPlugin.getInstance(), 0L, 20L);
@@ -276,6 +283,7 @@ public abstract class Ability implements Listener {
         if (!arena.getGame(arena.getID()).equals(Games.QUIRK_BATTTLE)) return;
         if (arena.getID() != this.getId()) return;
         if (uuid != e.getPlayer().getUniqueId()) return;
+        if (!isActive()) return;
 
         boolean shouldAct = player.getItemInHand().isSimilar(this.getItem());
 
@@ -297,6 +305,7 @@ public abstract class Ability implements Listener {
         if (!arena.getGame(arena.getID()).equals(Games.QUIRK_BATTTLE)) return;
         if (arena.getID() != this.getId() || !arena.getState().equals(GameState.LIVE)) return;
         if (uuid != e.getPlayer().getUniqueId()) return;
+        if (!isActive()) return;
         //TODO Return if player's ability settings are not set to HOTKEY.
         e.setCancelled(true);
         if (e.getNewSlot() == this.slot) executeAbility(player);
@@ -307,4 +316,23 @@ public abstract class Ability implements Listener {
 
     }
 
+    public void setActive(boolean active) {
+        this.active = active;
+        if (isActive()) {
+            Bukkit.getPlayer(uuid).getInventory().setItem(this.slot, getItem());
+        }
+    }
+    public boolean isActive() {return active;}
+
+    public void spawnRGBParticles(Location loc, float red, float green, float blue, boolean sendToSelf) {
+        PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(EnumParticle.REDSTONE, true, (float) loc.getX(), (float) loc.getY(), (float) loc.getZ(), red/255, green/255, blue/255, (float) 1, 0);
+
+        if (sendToSelf) arena.sendPacket(packet);
+        else {
+            for (UUID uuid: arena.getPlayers()) {
+                if (uuid == this.uuid) continue;
+                GameCoreMain.getInstance().sendPacket(Bukkit.getPlayer(uuid), packet);
+            }
+        }
+    }
 }

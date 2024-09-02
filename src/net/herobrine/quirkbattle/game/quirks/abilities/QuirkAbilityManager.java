@@ -10,6 +10,7 @@ import net.herobrine.quirkbattle.game.quirks.abilities.hero.hardening.Unbreakabl
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.AirPropulsionAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.DetroitSmashAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.ShootStyleAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.SwitchAbilitySetTest;
 import net.herobrine.quirkbattle.game.quirks.hero.Explosion;
 import org.bukkit.Bukkit;
 
@@ -80,6 +81,11 @@ public class QuirkAbilityManager {
                 abilities.add(unbreakable);
                 Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, unbreakable.getItem());
                 return unbreakable;
+            case OFA_ABILITY_SWITCH_TEST:
+                SwitchAbilitySetTest switchTest = new SwitchAbilitySetTest(ability, quirk, id, slot);
+                abilities.add(switchTest);
+                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, switchTest.getItem());
+                return switchTest;
             default: return null;
         }
     }

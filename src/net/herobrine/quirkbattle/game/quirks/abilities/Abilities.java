@@ -20,11 +20,13 @@ public enum Abilities {
     HOWITZER_IMPACT(ChatColor.GOLD + "Howitzer Impact", new String[] {"Launch yourself into the air and", "create 3 small explosions and 1 big explosion", "upon landing, dealing massive damage to anyone near."},
             Material.FIREBALL, 0,40, 40, 5, 0, 20000, 5, 30, false, false, false),
     STONE_CHARGE(ChatColor.RED + "Stone Charge", new String[] {"Temporarily increase your speed and defense,", "allowing you to charge into a player without a care!"},
-            Material.FIREWORK_CHARGE, 0, 30, 30, 0, 50, 15000, 1.5, 20, false, true, true),
+            Material.FIREWORK_CHARGE, 0, 30, 30, 0, 75, 15000, 1.5, 20, false, true, true),
     SHARP_CLAW(ChatColor.RED + "Sharp Claw", new String[] {"Power up your next 3 hits", "with increased damage by sharpening your fists!"}, Material.BLAZE_POWDER, 0,
             20, 20, 0, 0, 10000, 0, 3,false,true,true),
     UNBREAKABLE(ChatColor.RED + "Unbreakable", new String[] {"Push yourself to your absolute limits!", "Temporarily gain a massive defense", "boost and sharpen all your attacks!"},
-            Material.GLOWSTONE_DUST, 0, 60, 60, 0, 75, 40000, 0, 0,false,true,true);
+            Material.GLOWSTONE_DUST, 0, 60, 60, 0, 100, 40000, 0, 0,false,true,true),
+    OFA_ABILITY_SWITCH_TEST(ChatColor.RED + "Ability Switcher", new String[] {"Switch to your other ability set!", "This is currently a test ability."},
+            Material.CLAY_BALL, 0, 0, 0, 0, 0, 1000, 0, 0, false, false, false);
 
 
     private String display;

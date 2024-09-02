@@ -7,6 +7,7 @@ import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
+import net.herobrine.quirkbattle.game.quirks.abilities.AbilitySets;
 import net.herobrine.quirkbattle.game.stats.PlayerStats;
 import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.Bukkit;
@@ -41,7 +42,7 @@ public class Hardening extends Class implements Quirk {
 
     @Override
     public void onStart(Player player) {
-    stats = new PlayerStats(uuid, 225, 225, 50, 0, 100, 0);
+    stats = new PlayerStats(uuid, 220, 220, 75, 0, 100, 0);
     arena.getQuirkBattleGame().getPlayerStatsMap().put(uuid, stats);
     this.player = player;
     this.hitCount = 0;
@@ -132,6 +133,11 @@ public class Hardening extends Class implements Quirk {
             this.hitCount = 0;
         }
     }
+    }
+
+    @Override
+    public void registerAbilities(AbilitySets set) {
+
     }
 
     public void giveStaminaBoostForDamage(double damage) {
