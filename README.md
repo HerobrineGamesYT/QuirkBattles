@@ -66,6 +66,9 @@ Currently Developed Quirks:
 
   Note: The self-damage still goes under the damage reduction calculation from the player's defense.
 
+  ![image](https://github.com/user-attachments/assets/21fea87d-99ed-48af-a7a0-a45f9318969b)
+
+
 
   Explosion:
  
@@ -111,11 +114,11 @@ Hardening:
 
 Demonstration: https://www.youtube.com/watch?v=WOULCdGtsMU
 
-  Health: 225
+  Health: 220
 
   Base Damage: 3
   
-  Defense: 50
+  Defense: 75
 
   Soak up damage to gain stamina to transform into a tanky high-damage fighter!
 
@@ -133,13 +136,13 @@ Demonstration: https://www.youtube.com/watch?v=WOULCdGtsMU
 
      Stamina Cost: 30%
      Damage: 20
-     Defense Boost: +50
+     Defense Boost: +75
      Cooldown: 15s
 
   Unbreakable: Push yourself to your absolute limits! Temporarily gain a massive defense boost and sharpen all of your attacks!
 
     Stamina Cost: 60%
-    Defense Boost: +75
+    Defense Boost: +100
     Duration: 10s
     Cooldown: 40s
   
