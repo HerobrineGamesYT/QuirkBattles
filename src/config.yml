@@ -4,7 +4,7 @@ arenas:
       world: 'myhero'
       x: 986.5
       y: 4
-      z: 446.5
+      z: -446.5
       pitch: 1
       yaw: -90
     team1spawn:
@@ -37,7 +37,7 @@ arenas:
         world: 'myhero'
         x: 986.5
         y: 4
-        z: 446.5
+        z: -446.5
         pitch: 1
         yaw: -90
       team1spawn:
@@ -70,7 +70,7 @@ arenas:
       world: 'myhero'
       x: 986.5
       y: 4
-      z: 446.5
+      z: -446.5
       pitch: 1
       yaw: -90
     team1spawn:
@@ -103,7 +103,7 @@ arenas:
       world: 'myhero'
       x: 986.5
       y: 4
-      z: 446.5
+      z: -446.5
       pitch: 1
       yaw: -90
     team1spawn:
@@ -120,6 +120,52 @@ arenas:
       z: -446.5
       pitch: 1
       yaw: 90
+    region:
+      first-position:
+        world: 'myhero'
+        x: 986.0
+        y: 3.0
+        z: -476.0
+      second-position:
+        world: 'myhero'
+        x: 1094.0
+        y: 78.0
+        z: -419.0
+  '9':
+    spawn:
+      world: 'myhero'
+      x: 986.5
+      y: 4
+      z: -446.5
+      pitch: 1
+      yaw: -90
+    team1spawn:
+      world: 'myhero'
+      x: 986.5
+      y: 4
+      z: -446.5
+      pitch: 1
+      yaw: -90
+    team2spawn:
+      world: 'myhero'
+      x: 1093.5
+      y: 4
+      z: -446.5
+      pitch: 1
+      yaw: 90
+    team3spawn:
+      world: 'myhero'
+      x: 1041.5
+      y: 4
+      z: -471.5
+      pitch: 0
+      yaw: 0
+    team4spawn:
+      x: 1041.5
+      y: 4
+      z: -421.5
+      pitch: 1
+      yaw: -178
     region:
       first-position:
         world: 'myhero'

@@ -80,8 +80,12 @@ public class QuirkBattlesGame {
         collisionTicks = 0;
         seconds = 210;
 
-        if (mod != GameType.ONE_V_ONE) {
+        if (mod != GameType.ONE_V_ONE && mod != GameType.FFA) {
             startTeamsGame();
+            return;
+        }
+        if (mod == GameType.FFA) {
+            startFFAGame();
             return;
         }
         int i = 0;
@@ -157,6 +161,12 @@ public class QuirkBattlesGame {
         startTimer();
         startRegionCollision();
     }
+
+    public void createFFAScoreboard() {
+
+    }
+
+
 
     public void startTeamsGame() {
         int i = 0;
@@ -261,7 +271,7 @@ public class QuirkBattlesGame {
             if (mod.getAvailableTeams()[0].equals(arena.getTeam(player))) player.teleport(Config.getSpawnTeam1(arena.getID()));
             else player.teleport(Config.getSpawnTeam2(arena.getID()));
             i++;
-            if (arena.getClass(player) == null) {
+            if (!Manager.hasKit(player)) {
                 arena.setClass(uuid, ClassTypes.ONEFORALL);
                 player.sendMessage(HerobrinePVPCore.translateString("&6&lAll Might &r&6has granted you &aOne For All&6! Use it wisely."));
             }
@@ -275,7 +285,110 @@ public class QuirkBattlesGame {
                 ChatColor.translateAlternateColorCodes('&', "&a&m&l----------------------------------------"));
         arena.sendMessage(ChatColor.translateAlternateColorCodes('&', "                   &f&lQuirk Battle"));
         arena.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                "&e&lFight your opponent using your quirk!\n&e&lLast player standing wins."));
+                "&e&lFight the enemy team using your quirks!\n&e&lLast team standing wins."));
+        arena.sendMessage(
+                ChatColor.translateAlternateColorCodes('&', "&a&m&l----------------------------------------"));
+        startTimer();
+        startRegionCollision();
+    }
+
+    public void startFFAGame() {
+        int i = 0;
+        for (UUID uuid : arena.getPlayers()) {
+            Player player = Bukkit.getPlayer(uuid);
+            Scoreboard board = Bukkit.getScoreboardManager().getNewScoreboard();
+            Objective obj = board.registerNewObjective("qb", "dummy");
+            obj.setDisplayName(ChatColor.GREEN + "Quirk Battles");
+            obj.setDisplaySlot(DisplaySlot.SIDEBAR);
+
+            DateFormat df = new SimpleDateFormat("MM/dd/yy");
+            Date dateobj = new Date();
+
+            Team dateAndID = board.registerNewTeam("dateandid");
+            dateAndID.addEntry(ChatColor.DARK_RED.toString());
+            dateAndID.setPrefix(ChatColor.GRAY + df.format(dateobj) + ChatColor.DARK_GRAY + " qb" + arena.getID());
+            obj.getScore(ChatColor.DARK_RED.toString()).setScore(11);
+
+            Score blank1 = obj.getScore(" ");
+            blank1.setScore(10);
+
+            Team timer = board.registerNewTeam("qbtimer");
+            timer.addEntry(ChatColor.LIGHT_PURPLE.toString());
+            timer.setPrefix(ChatColor.WHITE + "Time Left: ");
+            String time = String.format("%02d:%02d", seconds / 60, seconds % 60);
+            timer.setSuffix(ChatColor.GREEN + time);
+            obj.getScore(ChatColor.LIGHT_PURPLE.toString()).setScore(9);
+
+            Score blank2 = obj.getScore("  ");
+            blank2.setScore(8);
+
+            Score opponent = obj.getScore(HerobrinePVPCore.translateString("&f&lOpponents:"));
+            opponent.setScore(7);
+
+            int score = 6;
+            int loop = 0;
+            List<UUID> opps = new ArrayList<>();
+            ChatColor[] colors = new ChatColor[] {ChatColor.BLUE, ChatColor.DARK_PURPLE, ChatColor.BLACK, ChatColor.DARK_GRAY, ChatColor.DARK_GREEN};
+            for (UUID uuid1 : arena.getPlayers()) {
+                Player player1 = Bukkit.getPlayer(uuid1);
+                if (player != player1) {
+                    Team opp = board.registerNewTeam("opponent" + loop);
+                    opp.addEntry(colors[loop].toString());
+                    String name  = player1.getName().substring(0, Math.min(player1.getName().length(), 13));
+                    opp.setPrefix(HerobrinePVPCore.getRankColor(player1) + name);
+                    opp.setSuffix(" " + ChatColor.GREEN + "100" + ChatColor.RED + "❤");
+                    obj.getScore(colors[loop].toString()).setScore(score);
+                    opps.add(player1.getUniqueId());
+                    score--;
+                    loop++;
+                }
+            }
+            if(!opps.isEmpty()) opponents.put(uuid, opps.toArray(new UUID[0]));
+            opps.clear();
+            Score blank3 = obj.getScore("    ");
+            blank3.setScore(2);
+            Score mode = obj.getScore(ChatColor.WHITE + "Mode: " + mod.getDisplay());
+            mode.setScore(1);
+
+            int nameCount = 0;
+
+            player.setMaxHealth(40.0);
+            player.setHealth(40.0);
+            player.setScoreboard(board);
+            switch (i) {
+                case 0:
+                    player.teleport(Config.getSpawnTeam1(arena.getID()));
+                    break;
+                case 1:
+                    player.teleport(Config.getSpawnTeam2(arena.getID()));
+                    break;
+                case 2:
+                    player.teleport(Config.getSpawnTeam3(arena.getID()));
+                    break;
+                case 3:
+                    player.teleport(Config.getSpawnTeam4(arena.getID()));
+                    break;
+                default:
+                    player.teleport(Config.getSpawnTeam1(arena.getID()));
+                    player.sendMessage(ChatColor.RED + "You were teleported to the default spawn location because there are more than 4 players!");
+                    break;
+            }
+            i++;
+            if (!Manager.hasKit(player)) {
+                arena.setClass(uuid, ClassTypes.ONEFORALL);
+                player.sendMessage(HerobrinePVPCore.translateString("&6&lAll Might &r&6has granted you &aOne For All&6! Use it wisely."));
+            }
+            SongPlayer.playSong(player, Songs.YOU_SAY_RUN);
+            alivePlayers.add(uuid);
+        }
+
+
+        for (UUID uuid : arena.getClasses().keySet()) {arena.getClasses().get(uuid).onStart(Bukkit.getPlayer(uuid));}
+        arena.sendMessage(
+                ChatColor.translateAlternateColorCodes('&', "&a&m&l----------------------------------------"));
+        arena.sendMessage(ChatColor.translateAlternateColorCodes('&', "                   &f&lQuirk Battle"));
+        arena.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                "&e&lFight all your opponents using your quirk!\n&e&lLast player standing wins."));
         arena.sendMessage(
                 ChatColor.translateAlternateColorCodes('&', "&a&m&l----------------------------------------"));
         startTimer();
@@ -300,10 +413,6 @@ public class QuirkBattlesGame {
         if (newHealthReal > maxHealth) newHealthReal = maxHealth;
 
         getStats(player).setHealth(newHealthReal);
-        //double healthPercent = (double)newHealthReal / (double)maxHealth;
-        //double playerHealth = player.getMaxHealth() * healthPercent;
-
-        //if(playerHealth != 0) player.setHealth(playerHealth);
     }
     public void updatePlayerStats(Player player) {
         int health = getStats(player).getHealth();
@@ -339,6 +448,7 @@ public class QuirkBattlesGame {
 
     public void isGameOver() {
         switch (mod) {
+            case FFA:
             case ONE_V_ONE:
                 if (alivePlayers.size() == 1) startEnding(Bukkit.getPlayer(alivePlayers.get(0)));
                 if (alivePlayers.size() == 0) startEnding((Player) null);

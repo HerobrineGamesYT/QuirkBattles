@@ -4,6 +4,7 @@ import net.herobrine.core.HerobrinePVPCore;
 import net.herobrine.gamecore.GameCoreMain;
 import net.herobrine.quirkbattle.event.QuirkBattlesListener;
 import net.herobrine.quirkbattle.files.Config;
+import net.herobrine.quirkbattle.menus.ModeSelector;
 import net.herobrine.quirkbattle.menus.QuirkSelector;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
@@ -23,6 +24,7 @@ public class QuirkBattlesPlugin extends JavaPlugin {
         new Config(this);
         Bukkit.getPluginManager().registerEvents(new QuirkBattlesListener(), this);
         Bukkit.getPluginManager().registerEvents(new QuirkSelector(), this);
+        Bukkit.getPluginManager().registerEvents(new ModeSelector(), this);
     }
     public static QuirkBattlesPlugin getInstance() {return instance;}
 

@@ -16,21 +16,35 @@ public class Config {
         return new Location(Bukkit.getWorld(main.getConfig().getString("arenas." + id + ".spawn.world")),
                 main.getConfig().getDouble("arenas." + id + ".spawn.x"),
                 main.getConfig().getDouble("arenas." + id + ".spawn.y"), main.getConfig().getDouble("arenas." + id + ".spawn.z"),
-                main.getConfig().getInt("arenas." + id + ".spawn.pitch"), main.getConfig().getInt("arenas." + id + ".spawn.yaw"));
+                main.getConfig().getInt("arenas." + id + ".spawn.yaw"), main.getConfig().getInt("arenas." + id + ".spawn.pitch"));
     }
 
     public static Location getSpawnTeam1(int id) {
         return new Location(Bukkit.getWorld(main.getConfig().getString("arenas." + id + ".team1spawn.world")),
                 main.getConfig().getDouble("arenas." + id + ".team1spawn.x"),
                 main.getConfig().getDouble("arenas." + id + ".team1spawn.y"), main.getConfig().getDouble("arenas." + id + ".team1spawn.z"),
-                main.getConfig().getInt("arenas." + id + ".team1spawn.pitch"), main.getConfig().getInt("arenas." + id + ".team1spawn.yaw"));
+                main.getConfig().getInt("arenas." + id + ".team1spawn.yaw"), main.getConfig().getInt("arenas." + id + ".team1spawn.pitch"));
     }
 
     public static Location getSpawnTeam2(int id) {
         return new Location(Bukkit.getWorld(main.getConfig().getString("arenas." + id + ".team2spawn.world")),
                 main.getConfig().getDouble("arenas." + id + ".team2spawn.x"),
                 main.getConfig().getDouble("arenas." + id + ".team2spawn.y"), main.getConfig().getDouble("arenas." + id + ".team2spawn.z"),
-                main.getConfig().getInt("arenas." + id + ".team2spawn.pitch"), main.getConfig().getInt("arenas." + id + ".team2spawn.yaw"));
+                main.getConfig().getInt("arenas." + id + ".team2spawn.yaw"), main.getConfig().getInt("arenas." + id + ".team2spawn.pitch"));
+    }
+
+    public static Location getSpawnTeam3(int id) {
+        return new Location(Bukkit.getWorld(main.getConfig().getString("arenas." + id + ".team3spawn.world")),
+                main.getConfig().getDouble("arenas." + id + ".team3spawn.x"),
+                main.getConfig().getDouble("arenas." + id + ".team3spawn.y"), main.getConfig().getDouble("arenas." + id + ".team3spawn.z"),
+                main.getConfig().getInt("arenas." + id + ".team3spawn.yaw"), main.getConfig().getInt("arenas." + id + ".team3spawn.pitch"));
+    }
+
+    public static Location getSpawnTeam4(int id) {
+        return new Location(Bukkit.getWorld(main.getConfig().getString("arenas." + id + ".team4spawn.world")),
+                main.getConfig().getDouble("arenas." + id + ".team4spawn.x"),
+                main.getConfig().getDouble("arenas." + id + ".team4spawn.y"), main.getConfig().getDouble("arenas." + id + ".team4spawn.z"),
+                main.getConfig().getInt("arenas." + id + ".team4spawn.yaw"), main.getConfig().getInt("arenas." + id + ".team4spawn.pitch"));
     }
 
     public static Location getFirstPosition(int id) {

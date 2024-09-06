@@ -67,7 +67,7 @@ public class ShootStyleAbility extends Ability {
                             Player pl1 = (Player) en;
                             Arena arena = Manager.getArena(player);
 
-                            if (arena.getType().equals(GameType.ONE_V_ONE)) {
+                            if (!arena.getType().isTeamsMode()) {
                                 if (pl1 != player && !hasHit.contains(player.getUniqueId()) && arena.getQuirkBattleGame().getAlivePlayers().contains(pl1.getUniqueId())) {
                                     hasHit.add(player.getUniqueId());
                                     doDamageTo(player, pl1, ability.getDamage(), power, CustomDeathCause.SHOOT_STYLE);

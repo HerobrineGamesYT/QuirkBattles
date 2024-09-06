@@ -44,9 +44,10 @@ public class QuirkSelector implements Listener {
                     if (Manager.getArena(player).getClass(player).equals(quirk)) {
                         List<String> lore = new ArrayList<>(Arrays.asList(quirk.getDescription()));
                         lore.add("");
-                        lore.add(ChatColor.GREEN + "You have this class selected!");
+                        lore.add(ChatColor.GREEN + "You have this quirk selected!");
                         item.addEnchant(Enchantment.DURABILITY, 1);
                         item.addItemFlag(ItemFlag.HIDE_ENCHANTS);
+                        item.setLore(lore);
                     }
                 }
 
@@ -82,7 +83,7 @@ public class QuirkSelector implements Listener {
             classString = classString.replaceAll("\\s", "");
             classString = classString.replaceAll("BATTLE", "");
 
-            ClassTypes type = null;
+            ClassTypes type;
             if (e.getCurrentItem().getType().equals(Material.BLAZE_ROD)) type = ClassTypes.ICYHOT;
             else type = ClassTypes.valueOf(classString);
 

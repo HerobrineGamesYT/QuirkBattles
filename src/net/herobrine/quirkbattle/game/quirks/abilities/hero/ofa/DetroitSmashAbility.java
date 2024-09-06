@@ -78,7 +78,7 @@ public class DetroitSmashAbility extends Ability {
                     for (Entity en : player.getNearbyEntities(ability.getRadius(), 1, ability.getRadius())) {
                         if (en.getType().equals(EntityType.PLAYER)) {
                             Player pl1 = (Player) en;
-                            if (arena.getType().equals(GameType.ONE_V_ONE)) {
+                            if (!arena.getType().isTeamsMode()) {
                                 if (pl1 != player && !hasHit.contains(pl1.getUniqueId()) && arena.getQuirkBattleGame().getAlivePlayers().contains(pl1.getUniqueId())) {
                                     hasHit.add(pl1.getUniqueId());
                                     doDamageTo(player, pl1, ability.getDamage(), power, CustomDeathCause.DETRIOT_SMASH);

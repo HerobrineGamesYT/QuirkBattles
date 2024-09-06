@@ -16,9 +16,8 @@ public class IceWallAbility extends Ability {
 
     }
 
-
-
     public void doVFX() {
 
     }
+
 }

@@ -127,7 +127,7 @@ public class Explosion extends Class implements Quirk {
                             Player pl1 = (Player) en;
                             Arena arena = Manager.getArena(player);
 
-                            if (arena.getType().equals(GameType.ONE_V_ONE)) {
+                            if (!arena.getType().isTeamsMode()) {
                                 if (pl1 != player && !hasHit.contains(pl1.getUniqueId()) && arena.getQuirkBattleGame().getAlivePlayers().contains(pl1.getUniqueId())) {
                                     hasHit.add(pl1.getUniqueId());
                                     doDamageTo(player, pl1, getClassType().getBaseDamage() + 5, CustomDeathCause.EXPLOSION_PUNCH);

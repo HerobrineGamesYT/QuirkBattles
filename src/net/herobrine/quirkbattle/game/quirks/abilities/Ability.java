@@ -153,7 +153,7 @@ public abstract class Ability implements Listener {
         boolean shouldAddSpace = false;
 
         if (ability.getDamage() != 0) {
-            lore.add(ChatColor.DARK_GRAY + "Base Damage: " + ChatColor.RED + ability.getDamage());
+            lore.add(ChatColor.DARK_GRAY + "Base Damage: " + ChatColor.RED + Math.round(ability.getDamage()));
             shouldAddSpace = true;
         }
         if (ability.getDefenseBoost() != 0) {
@@ -216,7 +216,7 @@ public abstract class Ability implements Listener {
 
         if (this.hasManaCost()) {
             arena.getQuirkBattleGame().getStats(player).setMana(mana - this.getAbility().getCost());
-            GameCoreMain.getInstance().sendActionBar(player, "&c" + health + "❤   " + "&3-" + this.getAbility().getCost() + " Mana (" + this.getAbility().getDisplay() + "&3)   " + mana + "/" + intelligence + "⸎ Stamina");
+            GameCoreMain.getInstance().sendActionBar(player, "&c" + health + "❤   " + "&3-" + this.getAbility().getCost() + " Stamina (" + this.getAbility().getDisplay() + "&3)   " + mana + "/" + intelligence + "⸎ Stamina");
         }
         if (this.hasCooldown() && !this.ability.waitForCooldown()) {
             this.cooldown = System.currentTimeMillis();
