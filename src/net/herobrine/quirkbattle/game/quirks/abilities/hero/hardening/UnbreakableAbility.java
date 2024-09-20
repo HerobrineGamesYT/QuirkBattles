@@ -35,7 +35,7 @@ public class UnbreakableAbility extends Ability implements SpecialCase {
     hardening.setSharpClaw(true);
     arena.getQuirkBattleGame().getStats(player).setDefense(arena.getQuirkBattleGame().getStats(player).getDefense() + ability.getDefenseBoost());
     arena.playSound(Sound.WITHER_SPAWN);
-    if(arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.GREEN + " is now " + HerobrinePVPCore.translateString("&c&lUNBREAKABLE&r&a!"));
+    if(!arena.getType().isTeamsMode()) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.GREEN + " is now " + HerobrinePVPCore.translateString("&c&lUNBREAKABLE&r&a!"));
     else arena.sendMessage(arena.getTeam(player).getColor() + player.getName() + ChatColor.GREEN + " is now " + HerobrinePVPCore.translateString("&c&lUNBREAKABLE&r&a!"));
     startFX(1.5f);
     new BukkitRunnable() {

@@ -7,6 +7,9 @@ import net.herobrine.quirkbattle.game.quirks.abilities.hero.explosion.HowitzerIm
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.hardening.SharpClawAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.hardening.StoneChargeAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.hardening.UnbreakableAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.fire.FireAbilityTest;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.ice.IceAbilityTest;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.ice.IceWallAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.AirPropulsionAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.DetroitSmashAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.ShootStyleAbility;
@@ -86,6 +89,21 @@ public class QuirkAbilityManager {
                 abilities.add(switchTest);
                 Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, switchTest.getItem());
                 return switchTest;
+            case ICE_ABILITY_TEST:
+                IceAbilityTest iceTest = new IceAbilityTest(ability, quirk, id, slot);
+                abilities.add(iceTest);
+                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, iceTest.getItem());
+                return iceTest;
+            case FIRE_ABILITY_TEST:
+                FireAbilityTest fireTest = new FireAbilityTest(ability, quirk, id, slot);
+                abilities.add(fireTest);
+                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, fireTest.getItem());
+                return fireTest;
+            case ICE_WALL:
+                IceWallAbility wall = new IceWallAbility(ability, quirk, id, slot);
+                abilities.add(wall);
+                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, wall.getItem());
+                return wall;
             default: return null;
         }
     }

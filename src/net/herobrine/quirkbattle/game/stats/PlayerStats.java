@@ -20,6 +20,13 @@ public class PlayerStats {
     private int strength;
     private int lastRegenMana;
 
+
+    private boolean useTemperature;
+
+    private int baseTemp;
+    private int temp;
+    private int maxTemp;
+
     public PlayerStats(UUID uuid, int health, int maxHealth, int defense, int mana, int intelligence, int strength) {
         this.uuid = uuid;
         this.health = health;
@@ -29,6 +36,22 @@ public class PlayerStats {
         this.intelligence = intelligence;
         this.strength = strength;
         this.lastRegenMana = mana;
+        this.useTemperature = false;
+    }
+
+    public PlayerStats(UUID uuid, int health, int maxHealth, int defense, int mana, int intelligence, int strength, boolean useTemperature, int temp, int maxTemp) {
+        this.uuid = uuid;
+        this.health = health;
+        this.maxHealth = maxHealth;
+        this.defense = defense;
+        this.mana = mana;
+        this.intelligence = intelligence;
+        this.strength = strength;
+        this.lastRegenMana = mana;
+        this.useTemperature = useTemperature;
+        this.temp = temp;
+        this.baseTemp = temp;
+        this.maxTemp = maxTemp;
     }
 
     public int getHealth() {return health;}
@@ -37,6 +60,19 @@ public class PlayerStats {
     public int getMana() {return mana;}
     public int getIntelligence() {return intelligence;}
     public int getStrength() {return strength;}
+
+    public int getTemp() {return temp;}
+
+    public int getBaseTemp() {return baseTemp;}
+    public void setTemp(int temp) {
+        this.temp = temp;
+        Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));
+    }
+
+    public boolean useTemperature() {return useTemperature;}
+
+    public int getMaxTemp() {return maxTemp;}
+
     public void setHealth(int health) {
         this.health = health;
         Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));

@@ -425,7 +425,17 @@ public class QuirkBattlesGame {
 
         if(playerHealth > 1) player.setHealth(playerHealth);
         else player.setHealth(2);
-        GameCoreMain.getInstance().sendActionBar(player, "&c" + health + "❤   &a" + defense + "❈ Defense   &3" + mana + "/" + intelligence + "⸎ Stamina");
+        if (!getStats(player).useTemperature()) GameCoreMain.getInstance().sendActionBar(player, "&c" + health + "❤   &a" + defense + "❈ Defense   &3" + mana + "/" + intelligence + "⸎ Stamina");
+        else {
+            ChatColor color;
+            int temp = getStats(player).getTemp();
+            int maxTemp = getStats(player).getMaxTemp();
+            int baseTemp = getStats(player).getBaseTemp();
+            if (temp > baseTemp) color = ChatColor.RED;
+            else if (temp < baseTemp) color = ChatColor.AQUA;
+            else color = ChatColor.YELLOW;
+            GameCoreMain.getInstance().sendActionBar(player, "&c" + health + "❤   &a" + defense + "❈ Defense   " + color  + temp + "/" + maxTemp + "❄ Temperature");
+        }
     }
 
     public ArrayList<UUID> getAlivePlayers() {return alivePlayers;}

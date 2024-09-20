@@ -26,7 +26,13 @@ public enum Abilities {
     UNBREAKABLE(ChatColor.RED + "Unbreakable", new String[] {"Push yourself to your absolute limits!", "Temporarily gain a massive defense", "boost and sharpen all your attacks!"},
             Material.GLOWSTONE_DUST, 0, 60, 60, 0, 100, 40000, 0, 0,false,true,true),
     OFA_ABILITY_SWITCH_TEST(ChatColor.RED + "Ability Switcher", new String[] {"Switch to your other ability set!", "This is currently a test ability."},
-            Material.CLAY_BALL, 0, 0, 0, 0, 0, 1000, 0, 0, false, false, false);
+            Material.CLAY_BALL, 0, 0, 0, 0, 0, 1000, 0, 0, false, false, false),
+    ICE_ABILITY_TEST(ChatColor.BLUE + "Ice Ability Test", new String[] {"This is an ability meant to help", "test the temperature system for ice."},
+            Material.PACKED_ICE, 0, -25, 25, 0, 0, 2000, 0, 0, false, false, false),
+    FIRE_ABILITY_TEST(ChatColor.RED + "Fire Ability Test", new String[] {"This is an ability meant to help", "test the temperature system for fire."},
+            Material.FIREWORK_CHARGE, 0, 25, 25, 0, 0, 2000, 0,0,false, false, false),
+    ICE_WALL(ChatColor.AQUA + "Ice Wall", new String[] {"Spawn a massive Ice Wall in", "front of you, stunning and damaging", "all enemies caught within it!"},
+            Material.PACKED_ICE, 0, -30, 30, 0,0,5000,0,10,false,false,false);
 
 
     private String display;

@@ -5,6 +5,8 @@ import net.herobrine.core.ItemBuilder;
 import net.herobrine.core.SkullMaker;
 import net.herobrine.gamecore.*;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
+import net.herobrine.quirkbattle.event.FrostbiteEvent;
+import net.herobrine.quirkbattle.event.OverheatEvent;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.stats.PlayerStats;
 import net.herobrine.quirkbattle.util.NBTReader;
@@ -89,7 +91,7 @@ public abstract class Ability implements Listener {
         doAbility(player);
     }
 
-    public boolean hasManaCost() {return ability.getCost() > 0;}
+    public boolean hasManaCost() {return ability.getCost() > 0 && !stats.useTemperature();}
 
     public boolean hasCooldown() {return ability.getCooldown() > 0;}
 
@@ -162,7 +164,8 @@ public abstract class Ability implements Listener {
         }
 
         if (shouldAddSpace) lore.add(" ");
-        if(ability.getCost() != 0) lore.add(ChatColor.DARK_GRAY + "Stamina Cost: " + ChatColor.DARK_AQUA + ability.getCost());
+        if(ability.getCost() != 0 && !stats.useTemperature()) lore.add(ChatColor.DARK_GRAY + "Stamina Cost: " + ChatColor.DARK_AQUA + ability.getCost());
+        if (ability.getCost() != 0 && stats.useTemperature()) lore.add(ChatColor.DARK_GRAY + "Temperature Cost: " + ChatColor.GREEN + ability.getCost());
         if (ability.getCooldown() != 0) lore.add(ChatColor.DARK_GRAY + "Cooldown: " + ChatColor.GREEN + (float)ability.getCooldown() / 1000 + "s");
 
         return lore;
@@ -196,6 +199,19 @@ public abstract class Ability implements Listener {
             }
         }
 
+        if (stats.useTemperature() && stats.getTemp() + this.getAbility().getCost() < 0) {
+            stats.setTemp(this.getAbility().getCost() + stats.getTemp());
+            FrostbiteEvent frost = new FrostbiteEvent(player);
+            Bukkit.getPluginManager().callEvent(frost);
+            return false;
+        }
+        if (stats.useTemperature() && this.getAbility().getCost() + stats.getTemp() > stats.getMaxTemp()) {
+            stats.setTemp(this.getAbility().getCost() + stats.getTemp());
+            OverheatEvent heat = new OverheatEvent(player);
+            Bukkit.getPluginManager().callEvent(heat);
+            return false;
+        }
+
 
         if (this.getAbility().hasSpecialCase()) {
             try {
@@ -218,6 +234,7 @@ public abstract class Ability implements Listener {
             arena.getQuirkBattleGame().getStats(player).setMana(mana - this.getAbility().getCost());
             GameCoreMain.getInstance().sendActionBar(player, "&c" + health + "❤   " + "&3-" + this.getAbility().getCost() + " Stamina (" + this.getAbility().getDisplay() + "&3)   " + mana + "/" + intelligence + "⸎ Stamina");
         }
+        if (stats.useTemperature()) stats.setTemp(stats.getTemp() + this.getAbility().getCost());
         if (this.hasCooldown() && !this.ability.waitForCooldown()) {
             this.cooldown = System.currentTimeMillis();
             doAbilityCooldown();
@@ -273,7 +290,10 @@ public abstract class Ability implements Listener {
     }
 
     // We'll unregister all the listeners when needed using this.
-    public void remove() {HandlerList.unregisterAll(this);}
+    public void remove() {
+        HandlerList.unregisterAll(this);
+        setActive(false);
+    }
 
     @EventHandler
     public void onClick(PlayerInteractEvent e) {
