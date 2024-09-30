@@ -10,38 +10,35 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.logging.Level;
+
 public class QuirkBattlesPlugin extends JavaPlugin {
     public static QuirkBattlesPlugin instance;
     @Override
     public void onEnable() {
         instance = this;
         if (getGameCoreAPI() == null || getCustomAPI() == null) {
-            System.out.println("[QUIRK BATTLES] You can't use this plugin without HBPVP Core and GameCore!");
+            getLogger().log(Level.WARNING, "[QUIRK BATTLES] You can't use this plugin without HBPVP Core and GameCore!");
             Bukkit.getServer().getPluginManager().disablePlugin(this);
             return;
         }
 
-        new Config(this);
+        saveDefaultConfig();
+
         Bukkit.getPluginManager().registerEvents(new QuirkBattlesListener(), this);
         Bukkit.getPluginManager().registerEvents(new QuirkSelector(), this);
         Bukkit.getPluginManager().registerEvents(new ModeSelector(), this);
     }
+
     public static QuirkBattlesPlugin getInstance() {return instance;}
 
     public GameCoreMain getGameCoreAPI() {
         Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin("GameCore");
-        if (plugin instanceof GameCoreMain) {
-            return (GameCoreMain) plugin;
-        } else {
-            return null;
-        }
+        return plugin instanceof GameCoreMain ? (GameCoreMain) plugin : null;
     }
+
     public HerobrinePVPCore getCustomAPI() {
         Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin("HBPVP-Core");
-        if (plugin instanceof HerobrinePVPCore) {
-            return (HerobrinePVPCore) plugin;
-        } else {
-            return null;
-        }
+        return plugin instanceof HerobrinePVPCore ? (HerobrinePVPCore) plugin : null;
     }
 }

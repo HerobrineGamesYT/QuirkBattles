@@ -132,7 +132,7 @@ public class Hardening extends Class implements Quirk {
             this.isSharpClaw = false;
             this.hitCount = 0;
         }
-    }
+     }
     }
 
     @Override

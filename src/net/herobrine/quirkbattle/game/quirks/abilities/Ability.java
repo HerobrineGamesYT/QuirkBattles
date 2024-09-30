@@ -296,20 +296,20 @@ public abstract class Ability implements Listener {
     }
 
     @EventHandler
-    public void onClick(PlayerInteractEvent e) {
-        Player player = e.getPlayer();
+    public void onClick(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
         if (!Manager.isPlaying(player)) return;
 
         if (!arena.getGame(arena.getID()).equals(Games.QUIRK_BATTTLE)) return;
         if (arena.getID() != this.getId()) return;
-        if (uuid != e.getPlayer().getUniqueId()) return;
+        if (uuid != event.getPlayer().getUniqueId()) return;
         if (!isActive()) return;
 
         boolean shouldAct = player.getItemInHand().isSimilar(this.getItem());
 
-        boolean isRightClick = e.getAction().equals(Action.RIGHT_CLICK_AIR) || e.getAction().equals(Action.RIGHT_CLICK_BLOCK);
+        boolean isRightClick = event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK);
 
-        boolean isLeftClick = e.getAction().equals(Action.LEFT_CLICK_AIR) || e.getAction().equals(Action.LEFT_CLICK_BLOCK);
+        boolean isLeftClick = event.getAction().equals(Action.LEFT_CLICK_AIR) || event.getAction().equals(Action.LEFT_CLICK_BLOCK);
 
         // TODO - Add Right/Left Click setting to execute ability.
        // if (this.getAbility().getType().equals(AbilityTypes.RIGHT_CLICK) && isRightClick && shouldAct) executeAbility(player);
@@ -318,22 +318,22 @@ public abstract class Ability implements Listener {
 
     }
     @EventHandler
-    public void onHeld(PlayerItemHeldEvent e) {
-        Player player = e.getPlayer();
+    public void onHeld(PlayerItemHeldEvent event) {
+        Player player = event.getPlayer();
         if (!Manager.isPlaying(player)) return;
 
         if (!arena.getGame(arena.getID()).equals(Games.QUIRK_BATTTLE)) return;
         if (arena.getID() != this.getId() || !arena.getState().equals(GameState.LIVE)) return;
-        if (uuid != e.getPlayer().getUniqueId()) return;
+        if (uuid != event.getPlayer().getUniqueId()) return;
         if (!isActive()) return;
         //TODO Return if player's ability settings are not set to HOTKEY.
-        e.setCancelled(true);
-        if (e.getNewSlot() == this.slot) executeAbility(player);
+        event.setCancelled(true);
+        if (event.getNewSlot() == this.slot) executeAbility(player);
     }
 
     @EventHandler
-    public void onSneak(PlayerToggleSneakEvent e) {
-
+    public void onSneak(PlayerToggleSneakEvent event) {
+    //TODO Sneak Abilities?
     }
 
     public void setActive(boolean active) {

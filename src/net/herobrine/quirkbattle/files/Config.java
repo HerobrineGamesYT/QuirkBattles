@@ -6,11 +6,8 @@ import org.bukkit.Location;
 
 public class Config {
 
-    private static QuirkBattlesPlugin main;
-    public Config(QuirkBattlesPlugin main) {
-        Config.main = main;
-        main.saveDefaultConfig();
-    }
+    private static final QuirkBattlesPlugin main = QuirkBattlesPlugin.getInstance();
+    private Config() {}
 
     public static Location getSpawn(int id) {
         return new Location(Bukkit.getWorld(main.getConfig().getString("arenas." + id + ".spawn.world")),

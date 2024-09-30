@@ -10,14 +10,13 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerEvent;
 
-public class OverheatEvent extends Event {
+public class OverheatEvent extends PlayerEvent {
     private static final HandlerList HANDLERS = new HandlerList();
 
-    private final Player player;
-
     public OverheatEvent(Player player) {
-        this.player = player;
+        super(player);
         player.sendMessage(HerobrinePVPCore.translateString("&c&lOUCH! &fYou are overheating!"));
         player.playSound(player.getLocation(), Sound.FIRE, 1f, 1f);
         GameCoreMain.getInstance().sendActionBar(player, "&c&lYOU ARE OVERHEATING!");
@@ -27,13 +26,17 @@ public class OverheatEvent extends Event {
         return HANDLERS;
     }
 
-    public Player getPlayer() {return player;}
+    public Arena getArena() {
+        return Manager.getArena(player);
+    }
 
-    public Arena getArena() {return Manager.getArena(player);}
+    public Quirk getQuirk() {
+        return (Quirk)getArena().getClasses().get(player.getUniqueId());
+    }
 
-    public Quirk getQuirk() {return (Quirk)getArena().getClasses().get(player.getUniqueId());}
-
-    public PlayerStats getStats() {return getArena().getQuirkBattleGame().getStats(player);}
+    public PlayerStats getStats() {
+        return getArena().getQuirkBattleGame().getStats(player);
+    }
 
     @Override
     public HandlerList getHandlers() {

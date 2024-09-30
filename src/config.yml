@@ -161,6 +161,7 @@ arenas:
       pitch: 0
       yaw: 0
     team4spawn:
+      world: 'myhero'
       x: 1041.5
       y: 4
       z: -421.5

@@ -13,7 +13,10 @@ import net.herobrine.quirkbattle.game.quirks.hero.OneForAll;
 import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Sound;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -22,7 +25,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -31,9 +36,9 @@ import java.util.Random;
 public class QuirkBattlesListener implements Listener {
 
     @EventHandler
-    public void onDamage(EntityDamageEvent e) {
-        if (e.getEntity() instanceof Player) {
-            Player player = (Player) e.getEntity();
+    public void onDamage(EntityDamageEvent event) {
+        if (event.getEntity() instanceof Player) {
+            Player player = (Player) event.getEntity();
 
             Arena arena;
             if (Manager.isPlaying(player)) arena = Manager.getArena(player);
@@ -48,18 +53,18 @@ public class QuirkBattlesListener implements Listener {
                 int health = arena.getQuirkBattleGame().getStats(player).getHealth();
                 int maxHealth = arena.getQuirkBattleGame().getStats(player).getMaxHealth();
                 int defense = arena.getQuirkBattleGame().getStats(player).getDefense();
-                double damage = e.getDamage();
-                e.setCancelled(true);
+                double damage = event.getDamage();
+                event.setCancelled(true);
                 if (damage == 0) return;
-                if (!e.getCause().equals(EntityDamageEvent.DamageCause.CUSTOM)) return;
+                if (!event.getCause().equals(EntityDamageEvent.DamageCause.CUSTOM)) return;
                 if (!arena.getQuirkBattleGame().getAlivePlayers().contains(player.getUniqueId())) return;
                 double damageReduction = (double)defense / ((double)defense + 100);
                 int trueDamage;
                 if (defense != 0) trueDamage = (int)Math.round(damage - (damage * damageReduction));
                 else trueDamage = (int)Math.round(damage);
                 player.sendMessage(ChatColor.GREEN + "You just took " + ChatColor.RED + trueDamage + "❁ Damage!");
-                player.sendMessage(ChatColor.GREEN + "Cause:  "+ e.getCause());
-                if (e.getCause().equals(EntityDamageEvent.DamageCause.CUSTOM)) {
+                player.sendMessage(ChatColor.GREEN + "Cause:  "+ event.getCause());
+                if (event.getCause().equals(EntityDamageEvent.DamageCause.CUSTOM)) {
                     player.sendMessage(ChatColor.GREEN + "Custom Cause: " + arena.getQuirkBattleGame().getCustomDeathCause().get(player.getUniqueId()));
                     if (arena.getQuirkBattleGame().getLastAbilityAttacker().containsKey(player.getUniqueId())) player.sendMessage(ChatColor.GREEN + "Last Attacker: " + Bukkit.getPlayer(arena.getQuirkBattleGame().getLastAbilityAttacker().get(player.getUniqueId())).getName());
                 }
@@ -92,17 +97,17 @@ public class QuirkBattlesListener implements Listener {
                    if (!arena.getType().isTeamsMode()) arena.getQuirkBattleGame().isGameOver();
                    else arena.getQuirkBattleGame().removeAlivePlayer(arena.getTeam(player));
                 }
-                e.setDamage(0);
+                event.setDamage(0);
             }
 
         }
     }
 
     @EventHandler
-    public void onHit(EntityDamageByEntityEvent e) {
-        if (e.getDamager() instanceof Player && e.getEntity() instanceof Player) {
-            Player player = (Player) e.getDamager();
-            Player target = (Player) e.getEntity();
+    public void onHit(EntityDamageByEntityEvent event) {
+        if (event.getDamager() instanceof Player && event.getEntity() instanceof Player) {
+            Player player = (Player) event.getDamager();
+            Player target = (Player) event.getEntity();
 
             Arena arena;
             if (Manager.isPlaying(player)) arena = Manager.getArena(player);
@@ -111,9 +116,9 @@ public class QuirkBattlesListener implements Listener {
             if (arena.getGame().equals(Games.QUIRK_BATTTLE) && arena.getState().equals(GameState.LIVE)) {
                 Class kit = arena.getClasses().get(player.getUniqueId());
                 Quirk quirk = (Quirk) kit;
-                e.setCancelled(true);
+                event.setCancelled(true);
                 if (!arena.getType().isTeamsMode()) {
-                    e.setDamage(0);
+                    event.setDamage(0);
                     double damage = arena.getClass(player).getBaseDamage();
                     if (quirk.shouldUseAbilityAttack()) {
                         quirk.useAbilityAttack(target);
@@ -130,15 +135,15 @@ public class QuirkBattlesListener implements Listener {
                         explosion.giveStaminaBoost(2);
                     }
                     @SuppressWarnings("deprecation")
-                    EntityDamageEvent event = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, damage);
+                    EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, damage);
                     arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.GENERAL_ATTACK);
                     arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
-                    Bukkit.getPluginManager().callEvent(event);
-                    target.setLastDamageCause(event);
+                    Bukkit.getPluginManager().callEvent(dmg);
+                    target.setLastDamageCause(dmg);
                 }
                 else {
                     if (arena.getTeam(player) != arena.getTeam(target)) {
-                        e.setDamage(0);
+                        event.setDamage(0);
                         double damage = arena.getClass(player).getBaseDamage();
                         if (quirk.shouldUseAbilityAttack()) {
                             quirk.useAbilityAttack(target);
@@ -154,14 +159,14 @@ public class QuirkBattlesListener implements Listener {
                             explosion.giveStaminaBoost(2);
                         }
                         @SuppressWarnings("deprecation")
-                        EntityDamageEvent event = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, damage);
+                        EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, damage);
                         arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.GENERAL_ATTACK);
                         arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
-                        Bukkit.getPluginManager().callEvent(event);
-                        target.setLastDamageCause(event);
+                        Bukkit.getPluginManager().callEvent(dmg);
+                        target.setLastDamageCause(dmg);
                     }
                     else {
-                        e.setCancelled(true);
+                        event.setCancelled(true);
                         player.sendMessage(ChatColor.RED + "You cannot hurt your teammates!");
                     }
                 }
@@ -244,14 +249,44 @@ public class QuirkBattlesListener implements Listener {
                if (!arena.getType().isTeamsMode()) arena.sendMessage(HerobrinePVPCore.getRankColor(player) + player.getName() + ChatColor.GRAY + " has died.");
                else arena.sendMessage(arena.getTeam(player).getColor() + player.getName() + ChatColor.GRAY + " has died.");
                return;
-
        }
     }
 
+    @EventHandler
+    public void onInteractEntity(PlayerInteractAtEntityEvent event) {
+        Player player = event.getPlayer();
+        Entity entity = event.getRightClicked();
+        Arena arena = null;
+        if (Manager.isPlaying(player)) arena = Manager.getArena(player);
+        if (arena == null) return;
+        if (!arena.getState().equals(GameState.LIVE) || !arena.getGame().equals(Games.QUIRK_BATTTLE)) return;
+        if (!arena.getSpectators().contains(player.getUniqueId())) return;
+        if (!(entity instanceof Player)) return;
+        if (!arena.getQuirkBattleGame().getAlivePlayers().contains(entity.getUniqueId())) return;
+        CraftPlayer p = (CraftPlayer) player;
+        player.setGameMode(GameMode.SPECTATOR);
+        p.getHandle().setSpectatorTarget(((CraftEntity)entity).getHandle());
+        GameCoreMain.getInstance().sendTitle(player, "&aSpectating " + entity.getName(), "&c&lSNEAK &7to stop spectating!", 0, 1, 0);
+    }
 
     @EventHandler
-    public void onInteract(PlayerInteractEvent e) {
-        Player player = e.getPlayer();
+    public void onSneak(PlayerToggleSneakEvent event) {
+        Player player = event.getPlayer();
+        Arena arena = null;
+        if (Manager.isPlaying(player)) arena = Manager.getArena(player);
+        if (arena == null) return;
+        if (!arena.getState().equals(GameState.LIVE) || !arena.getGame().equals(Games.QUIRK_BATTTLE)) return;
+        if (!arena.getSpectators().contains(player.getUniqueId())) return;
+        CraftPlayer p = (CraftPlayer) player;
+        player.teleport(player.getSpectatorTarget().getLocation());
+        p.getHandle().setSpectatorTarget(((CraftEntity)player).getHandle());
+        player.setGameMode(GameMode.ADVENTURE);
+        player.setAllowFlight(true);
+    }
+
+    @EventHandler
+    public void onInteract(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
         if (!Manager.isPlaying(player)) return;
         Arena arena = Manager.getArena(player);
         if (arena.getGame() != Games.QUIRK_BATTTLE) return;
@@ -268,15 +303,15 @@ public class QuirkBattlesListener implements Listener {
         }
     }
     @EventHandler
-    public void onDeath(PlayerDeathEvent e) {
-        if (Manager.isPlaying(e.getEntity())) {
-            Arena arena = Manager.getArena(e.getEntity());
+    public void onDeath(PlayerDeathEvent event) {
+        if (Manager.isPlaying(event.getEntity())) {
+            Arena arena = Manager.getArena(event.getEntity());
 
             if (arena.getGame().equals(Games.QUIRK_BATTTLE)) {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        e.getEntity().spigot().respawn();
+                        event.getEntity().spigot().respawn();
                     }
                 }.runTaskLater(QuirkBattlesPlugin.getInstance(), 2L);
             }

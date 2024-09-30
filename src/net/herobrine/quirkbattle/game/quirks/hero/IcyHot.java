@@ -170,8 +170,8 @@ public class IcyHot extends Class implements Quirk, Switchable {
     }
 
     @EventHandler
-    public void onFrost(FrostbiteEvent e) {
-    if (e.getQuirk() != this) return;
+    public void onFrost(FrostbiteEvent event) {
+    if (event.getQuirk() != this) return;
     isStunned = true;
     int damage = 3;
     int warmPerTick = 2;
@@ -192,22 +192,22 @@ public class IcyHot extends Class implements Quirk, Switchable {
                     ability.setActive(true);
                 }
                 isStunned = false;
-                e.getPlayer().sendMessage(HerobrinePVPCore.translateString("&e&lPHEW! &fYou've warmed up now. Be careful!"));
+                event.getPlayer().sendMessage(HerobrinePVPCore.translateString("&e&lPHEW! &fYou've warmed up now. Be careful!"));
                 return;
             }
             if (stats.getTemp() + 1 == stats.getBaseTemp()) stats.setTemp(stats.getBaseTemp());
             else stats.setTemp(stats.getTemp() + warmPerTick);
-            EntityDamageEvent dmg = new EntityDamageEvent(e.getPlayer(), EntityDamageEvent.DamageCause.CUSTOM, damage);
-            e.getArena().getQuirkBattleGame().getCustomDeathCause().put(e.getPlayer().getUniqueId(), CustomDeathCause.FROSTBITE);
-            e.getArena().getQuirkBattleGame().getLastAbilityAttacker().put(e.getPlayer().getUniqueId(), e.getPlayer().getUniqueId());
+            EntityDamageEvent dmg = new EntityDamageEvent(event.getPlayer(), EntityDamageEvent.DamageCause.CUSTOM, damage);
+            event.getArena().getQuirkBattleGame().getCustomDeathCause().put(event.getPlayer().getUniqueId(), CustomDeathCause.FROSTBITE);
+            event.getArena().getQuirkBattleGame().getLastAbilityAttacker().put(event.getPlayer().getUniqueId(), event.getPlayer().getUniqueId());
             Bukkit.getPluginManager().callEvent(dmg);
         }
     }.runTaskTimer(QuirkBattlesPlugin.getInstance(), 0L, 2L);
     }
 
     @EventHandler
-    public void onOverHeat(OverheatEvent e) {
-        if (e.getQuirk() != this) return;
+    public void onOverHeat(OverheatEvent event) {
+        if (event.getQuirk() != this) return;
         isStunned = true;
         int damage = 3;
         int coolPerTick = -2;
@@ -225,7 +225,7 @@ public class IcyHot extends Class implements Quirk, Switchable {
                 if (stats.getTemp() == stats.getBaseTemp()) {
                     cancel();
                     isStunned = false;
-                    e.getPlayer().sendMessage(HerobrinePVPCore.translateString("&e&lPHEW! &fYou've cooled off now. Be careful!"));
+                    event.getPlayer().sendMessage(HerobrinePVPCore.translateString("&e&lPHEW! &fYou've cooled off now. Be careful!"));
                     for (Ability ability : abilities) {
                         ability.setActive(true);
                     }
@@ -233,9 +233,9 @@ public class IcyHot extends Class implements Quirk, Switchable {
                 }
                 if (stats.getTemp() - 1 == stats.getBaseTemp()) stats.setTemp(stats.getBaseTemp());
                 else stats.setTemp(stats.getTemp() + coolPerTick);
-                EntityDamageEvent dmg = new EntityDamageEvent(e.getPlayer(), EntityDamageEvent.DamageCause.CUSTOM, damage);
-                e.getArena().getQuirkBattleGame().getCustomDeathCause().put(e.getPlayer().getUniqueId(), CustomDeathCause.OVERHEAT);
-                e.getArena().getQuirkBattleGame().getLastAbilityAttacker().put(e.getPlayer().getUniqueId(), e.getPlayer().getUniqueId());
+                EntityDamageEvent dmg = new EntityDamageEvent(event.getPlayer(), EntityDamageEvent.DamageCause.CUSTOM, damage);
+                event.getArena().getQuirkBattleGame().getCustomDeathCause().put(event.getPlayer().getUniqueId(), CustomDeathCause.OVERHEAT);
+                event.getArena().getQuirkBattleGame().getLastAbilityAttacker().put(event.getPlayer().getUniqueId(), event.getPlayer().getUniqueId());
                 Bukkit.getPluginManager().callEvent(dmg);
             }
         }.runTaskTimer(QuirkBattlesPlugin.getInstance(), 0L, 2L);

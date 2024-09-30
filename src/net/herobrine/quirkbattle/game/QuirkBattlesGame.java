@@ -28,15 +28,15 @@ public class QuirkBattlesGame {
 
     private int endSeconds;
 
-    private HashMap<UUID, PlayerStats> playerStatsMap;
+    private final Map<UUID, PlayerStats> playerStatsMap = new HashMap<>();
 
-    private HashMap<UUID, CustomDeathCause> customDeathCause = new HashMap<>();
+    private final Map<UUID, CustomDeathCause> customDeathCause = new HashMap<>();
 
     // Victim UUID -> Attacker UUID
-    private HashMap<UUID, UUID> lastAbilityAttacker = new HashMap<>();
+    private final Map<UUID, UUID> lastAbilityAttacker = new HashMap<>();
 
-    private ArrayList<UUID> alivePlayers = new ArrayList<>();
-    HashMap<UUID, UUID[]> opponents = new HashMap<>();
+    private final List<UUID> alivePlayers = new ArrayList<>();
+    private final Map<UUID, UUID[]> opponents = new HashMap<>();
 
     private Region region;
     private QuirkAbilityManager abilityManager;
@@ -53,7 +53,6 @@ public class QuirkBattlesGame {
 
     public QuirkBattlesGame(Arena arena) {
         this.arena = arena;
-        this.playerStatsMap = new HashMap<>();
         this.areRegionsInitialized = false;
         this.abilityManager = new QuirkAbilityManager(arena.getID());
         this.border = arena.getSpawn().getWorld().getWorldBorder();
@@ -84,10 +83,12 @@ public class QuirkBattlesGame {
             startTeamsGame();
             return;
         }
+
         if (mod == GameType.FFA) {
             startFFAGame();
             return;
         }
+
         int i = 0;
         for (UUID uuid : arena.getPlayers()) {
             Player player = Bukkit.getPlayer(uuid);
@@ -415,6 +416,8 @@ public class QuirkBattlesGame {
         getStats(player).setHealth(newHealthReal);
     }
     public void updatePlayerStats(Player player) {
+        if (!player.isOnline()) return;
+        if (!arena.getPlayers().contains(player.getUniqueId())) return;
         int health = getStats(player).getHealth();
         int defense = getStats(player).getDefense();
         int mana = getStats(player).getMana();
@@ -422,7 +425,6 @@ public class QuirkBattlesGame {
 
         double healthPercent = (double)health / (double)getStats(player).getMaxHealth();
         double playerHealth = player.getMaxHealth() * healthPercent;
-
         if(playerHealth > 1) player.setHealth(playerHealth);
         else player.setHealth(2);
         if (!getStats(player).useTemperature()) GameCoreMain.getInstance().sendActionBar(player, "&c" + health + "❤   &a" + defense + "❈ Defense   &3" + mana + "/" + intelligence + "⸎ Stamina");
@@ -438,11 +440,11 @@ public class QuirkBattlesGame {
         }
     }
 
-    public ArrayList<UUID> getAlivePlayers() {return alivePlayers;}
+    public List<UUID> getAlivePlayers() {return alivePlayers;}
     public PlayerStats getStats(Player player) {
         return playerStatsMap.get(player.getUniqueId());
     }
-    public HashMap<UUID, PlayerStats> getPlayerStatsMap() {return playerStatsMap;}
+    public Map<UUID, PlayerStats> getPlayerStatsMap() {return playerStatsMap;}
     public ClassTypes randomClass() {
         int i = 0;
         do {
@@ -477,8 +479,8 @@ public class QuirkBattlesGame {
                 return;
         }
     }
-    public HashMap<UUID, CustomDeathCause> getCustomDeathCause() {return customDeathCause;}
-    public HashMap<UUID, UUID> getLastAbilityAttacker() {return lastAbilityAttacker;}
+    public Map<UUID, CustomDeathCause> getCustomDeathCause() {return customDeathCause;}
+    public Map<UUID, UUID> getLastAbilityAttacker() {return lastAbilityAttacker;}
 
     public void removeAlivePlayer(Teams team) {
         switch(team) {
@@ -614,10 +616,12 @@ public class QuirkBattlesGame {
         for (UUID uuid : arena.getPlayers()) {
             Player player = Bukkit.getPlayer(uuid);
             SongPlayer.stopSong(player);
+
             if (winner == null) {
                 GameCoreMain.getInstance().sendTitle(player, "&e&lDRAW", "The game ended in a draw!", 0, 3, 0);
                 SongPlayer.playSong(player, Songs.QBDRAW);
             }
+
             if (arena.getTeam(player) == winner) {
                 GameCoreMain.getInstance().sendTitle(player, "&6&lVICTORY", "&7Your team is the last one alive!", 0,
                         3, 0);

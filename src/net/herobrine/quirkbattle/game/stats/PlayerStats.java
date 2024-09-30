@@ -55,15 +55,21 @@ public class PlayerStats {
     }
 
     public int getHealth() {return health;}
+
     public int getMaxHealth() {return maxHealth;}
+
     public int getDefense() {return defense;}
+
     public int getMana() {return mana;}
+
     public int getIntelligence() {return intelligence;}
+
     public int getStrength() {return strength;}
 
     public int getTemp() {return temp;}
 
     public int getBaseTemp() {return baseTemp;}
+
     public void setTemp(int temp) {
         this.temp = temp;
         Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));
@@ -75,32 +81,37 @@ public class PlayerStats {
 
     public void setHealth(int health) {
         this.health = health;
-        Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));
+        if (Manager.isPlaying(Bukkit.getPlayer(uuid))) Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));
     }
+
     public void setMaxHealth(int health) {
         this.maxHealth = health;
-        Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));}
+        Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));
+    }
+
     public void setDefense(int defense) {
         Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));
         this.defense = defense;
     }
+
     public void setMana(int mana) {
         lastRegenMana = mana;
         this.mana = mana;
         Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));
     }
+
     public void setManaSpecial(int mana) {
         this.mana = mana;
         Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));
     }
     public void setIntelligence(int intelligence) {
         this.intelligence = intelligence;
-        Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));}
+        Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));
+    }
+
     public void setStrength(int strength) {
         this.strength = strength;
-        Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));}
-
-
-
+        Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));
+    }
 
 }
