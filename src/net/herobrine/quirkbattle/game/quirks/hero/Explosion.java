@@ -1,8 +1,12 @@
 package net.herobrine.quirkbattle.game.quirks.hero;
 
 import net.herobrine.core.HerobrinePVPCore;
-import net.herobrine.gamecore.*;
+import net.herobrine.gamecore.Arena;
 import net.herobrine.gamecore.Class;
+import net.herobrine.gamecore.ClassTypes;
+import net.herobrine.gamecore.GameState;
+import net.herobrine.gamecore.ItemBuilder;
+import net.herobrine.gamecore.Manager;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
@@ -10,42 +14,36 @@ import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.abilities.AbilitySets;
 import net.herobrine.quirkbattle.game.stats.PlayerStats;
 import net.herobrine.quirkbattle.util.Quirk;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class Explosion extends Class implements Quirk {
+    private final List<Ability> abilities;
+    private PlayerStats stats;
+    private final Arena arena;
+    private final Player player;
+
+    private boolean explosivePunch = false;
+
     public Explosion(UUID uuid) {
         super(uuid, ClassTypes.EXPLOSION);
         arena = Manager.getArena(Bukkit.getPlayer(uuid));
         player = Bukkit.getPlayer(uuid);
         this.abilities = new ArrayList<>();
     }
-    List<Ability> abilities;
-    PlayerStats stats;
-    Arena arena;
-    Player player;
-
-    boolean explosivePunch = false;
-    long lastExplosionDash = 0;
-    long lastExplosionPunch = 0;
-    long howitzerImpact = 0;
-
-    int explosionPunchCooldown;
-    int howitzerImpactCooldown;
 
 
     @Override
@@ -92,7 +90,9 @@ public class Explosion extends Class implements Quirk {
     }
 
 
-    private Explosion getInstance() {return this;}
+    private Explosion getInstance() {
+        return this;
+    }
 
 
     public void explodeForPunch(Location hitLocation) {
@@ -108,7 +108,7 @@ public class Explosion extends Class implements Quirk {
     public void doExplosionPunchCollision(Location explosionLocation) {
         new BukkitRunnable() {
             int cooldown = 15;
-            ArrayList<UUID> hasHit = new ArrayList<>();
+            List<UUID> hasHit = new ArrayList<>();
 
             @Override
             public void run() {
@@ -119,8 +119,7 @@ public class Explosion extends Class implements Quirk {
                 if (cooldown == 0) {
                     cancel();
                     hasHit.clear();
-                }
-                else {
+                } else {
                     cancel();
                     for (Entity en : explosionLocation.getWorld().getNearbyEntities(explosionLocation, 2, 1.5, 2)) {
                         if (en.getType().equals(EntityType.PLAYER)) {
@@ -134,13 +133,12 @@ public class Explosion extends Class implements Quirk {
                                     pl1.sendMessage(HerobrinePVPCore.translateString("&6" + player.getName() + "&a just hit you with their &6&lExplosion Punch &r&aattack!"));
                                     player.sendMessage(HerobrinePVPCore.translateString("&aYou just hit &6" + pl1.getName() + "&a with your &6&lExplosion Punch &r&aattack!"));
                                 }
-                            }
-                            else if (pl1 != player && arena.getTeam(pl1) != arena.getTeam(player)
+                            } else if (pl1 != player && arena.getTeam(pl1) != arena.getTeam(player)
                                     && !hasHit.contains(pl1.getUniqueId()) && arena.getQuirkBattleGame().getAlivePlayers().contains(pl1.getUniqueId())) {
                                 hasHit.add(pl1.getUniqueId());
                                 doDamageTo(player, pl1, getClassType().getBaseDamage() + 5, CustomDeathCause.EXPLOSION_PUNCH);
                                 pl1.sendMessage(HerobrinePVPCore.translateString(arena.getTeam(player).getColor() + player.getName() + "&a just hit you with their &&6lExplosion Punch &r&aattack!"));
-                                player.sendMessage(HerobrinePVPCore.translateString("&aYou just hit " + arena.getTeam(pl1).getColor() +  pl1.getName() + "&a with your &6&lExplosion Punch &r&aattack!"));
+                                player.sendMessage(HerobrinePVPCore.translateString("&aYou just hit " + arena.getTeam(pl1).getColor() + pl1.getName() + "&a with your &6&lExplosion Punch &r&aattack!"));
                             }
                         }
                     }
@@ -152,6 +150,7 @@ public class Explosion extends Class implements Quirk {
     public boolean isExplosivePunch() {
         return explosivePunch;
     }
+
     public void setExplosivePunch(boolean explosivePunch) {
         this.explosivePunch = explosivePunch;
     }
@@ -161,11 +160,11 @@ public class Explosion extends Class implements Quirk {
         if (stm > stats.getIntelligence()) stm = stats.getIntelligence();
         stats.setMana(stm);
         if (stm == stats.getIntelligence()) {
-                ItemBuilder defaultHeldItem = new ItemBuilder(Material.STICK);
-                defaultHeldItem.setDisplayName(ChatColor.GREEN + "Power is full!");
-                defaultHeldItem.addItemFlag(ItemFlag.HIDE_ENCHANTS);
-                defaultHeldItem.addEnchant(Enchantment.DURABILITY, 1);
-                player.getInventory().setItem(0, defaultHeldItem.build());
+            ItemBuilder defaultHeldItem = new ItemBuilder(Material.STICK);
+            defaultHeldItem.setDisplayName(ChatColor.GREEN + "Power is full!");
+            defaultHeldItem.addItemFlag(ItemFlag.HIDE_ENCHANTS);
+            defaultHeldItem.addEnchant(Enchantment.DURABILITY, 1);
+            player.getInventory().setItem(0, defaultHeldItem.build());
 
         }
 

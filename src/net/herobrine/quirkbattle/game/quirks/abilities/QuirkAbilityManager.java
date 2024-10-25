@@ -14,21 +14,24 @@ import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.AirPropulsionAbi
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.DetroitSmashAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.ShootStyleAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.SwitchAbilitySetTest;
-import net.herobrine.quirkbattle.game.quirks.hero.Explosion;
 import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
 
 public class QuirkAbilityManager {
-    ArrayList<Ability> abilities = new ArrayList<>();
-    private int id;
+    List<Ability> abilities = new ArrayList<>();
+    private final int id;
+
     public QuirkAbilityManager(int id) {
         this.id = id;
     }
-   public void unregisterAbilities() {
-    for (Ability ability : abilities) {ability.remove();}
-    abilities.clear();
+
+    public void unregisterAbilities() {
+        for (Ability ability : abilities) {
+            ability.remove();
+        }
+        abilities.clear();
     }
 
     public Ability getAbilityFromQuirk(Class quirk, Abilities desiredAbility) {
@@ -37,6 +40,7 @@ public class QuirkAbilityManager {
         }
         return null;
     }
+
     public Ability registerAbility(Abilities ability, Class quirk, int slot) {
         switch (ability) {
             case DETROIT_SMASH:
@@ -104,7 +108,8 @@ public class QuirkAbilityManager {
                 abilities.add(wall);
                 Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, wall.getItem());
                 return wall;
-            default: return null;
+            default:
+                return null;
         }
     }
 }

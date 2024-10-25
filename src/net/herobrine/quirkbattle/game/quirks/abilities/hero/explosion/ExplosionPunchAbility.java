@@ -10,7 +10,7 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 public class ExplosionPunchAbility extends Ability implements SpecialCase {
-    Explosion exp;
+    private Explosion exp;
 
     public ExplosionPunchAbility(Abilities ability, Class quirk, int id, int slot) {
         super(ability, quirk, id, slot);
@@ -32,7 +32,7 @@ public class ExplosionPunchAbility extends Ability implements SpecialCase {
 
     @Override
     public void doNoPass(Player player) {
-    player.sendMessage(ChatColor.RED + "You've already powered up!");
-    player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f, 1f);
+        player.sendMessage(ChatColor.RED + "You've already powered up!");
+        player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f, 1f);
     }
 }

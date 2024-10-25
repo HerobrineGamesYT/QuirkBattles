@@ -8,7 +8,6 @@ import net.herobrine.quirkbattle.game.stats.PlayerStats;
 import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 
@@ -31,7 +30,7 @@ public class OverheatEvent extends PlayerEvent {
     }
 
     public Quirk getQuirk() {
-        return (Quirk)getArena().getClasses().get(player.getUniqueId());
+        return (Quirk) getArena().getClasses().get(player.getUniqueId());
     }
 
     public PlayerStats getStats() {

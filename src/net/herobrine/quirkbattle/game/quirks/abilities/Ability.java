@@ -1,9 +1,11 @@
 package net.herobrine.quirkbattle.game.quirks.abilities;
 
-import net.herobrine.core.HerobrinePVPCore;
 import net.herobrine.core.ItemBuilder;
-import net.herobrine.core.SkullMaker;
-import net.herobrine.gamecore.*;
+import net.herobrine.gamecore.Arena;
+import net.herobrine.gamecore.GameCoreMain;
+import net.herobrine.gamecore.GameState;
+import net.herobrine.gamecore.Games;
+import net.herobrine.gamecore.Manager;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.event.FrostbiteEvent;
 import net.herobrine.quirkbattle.event.OverheatEvent;
@@ -12,8 +14,11 @@ import net.herobrine.quirkbattle.game.stats.PlayerStats;
 import net.herobrine.quirkbattle.util.NBTReader;
 import net.minecraft.server.v1_8_R3.EnumParticle;
 import net.minecraft.server.v1_8_R3.PacketPlayOutWorldParticles;
-import org.bukkit.*;
-import org.bukkit.enchantments.Enchantment;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -31,8 +36,6 @@ import java.lang.Class;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.UUID;
 
 public abstract class Ability implements Listener {
@@ -59,6 +62,7 @@ public abstract class Ability implements Listener {
     protected PlayerStats stats;
 
     protected boolean active;
+
     public Ability(Abilities ability, net.herobrine.gamecore.Class quirk, int id, int slot) {
         this.ability = ability;
         this.quirk = quirk;
@@ -86,27 +90,41 @@ public abstract class Ability implements Listener {
     public abstract void doAbility(Player player);
 
     public void executeAbility(Player player) {
-        if(!shouldDoAbility(player)) return;
+        if (!shouldDoAbility(player)) return;
         player.sendMessage(ChatColor.GREEN + "Doing ability " + ability);
         doAbility(player);
     }
 
-    public boolean hasManaCost() {return ability.getCost() > 0 && !stats.useTemperature();}
+    public boolean hasManaCost() {
+        return ability.getCost() > 0 && !stats.useTemperature();
+    }
 
-    public boolean hasCooldown() {return ability.getCooldown() > 0;}
+    public boolean hasCooldown() {
+        return ability.getCooldown() > 0;
+    }
 
-    public boolean shouldScheduleTask() {return ability.getCooldown() < 2000;}
-    public long getCooldown() {return cooldown;}
-    public void setCooldown(long cooldown) {this.cooldown = cooldown;}
+    public boolean shouldScheduleTask() {
+        return ability.getCooldown() < 2000;
+    }
 
-    public int getId() {return id;}
+    public long getCooldown() {
+        return cooldown;
+    }
+
+    public void setCooldown(long cooldown) {
+        this.cooldown = cooldown;
+    }
+
+    public int getId() {
+        return id;
+    }
 
     public void doDamageTo(Player damager, Player target, double damage, int power, CustomDeathCause cause) {
         Arena arena = Manager.getArena(damager);
         arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), damager.getUniqueId());
         arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), cause);
 
-        double dmg = damage + (damage * ((double) power /100));
+        double dmg = damage + (damage * ((double) power / 100));
         target.damage(0);
         @SuppressWarnings("deprecation")
         EntityDamageEvent event = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, dmg);
@@ -114,6 +132,7 @@ public abstract class Ability implements Listener {
         Bukkit.getPluginManager().callEvent(event);
 
     }
+
     public void doDamageTo(Player damager, Player target, double damage, CustomDeathCause cause) {
         Arena arena = Manager.getArena(damager);
         arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), damager.getUniqueId());
@@ -149,8 +168,13 @@ public abstract class Ability implements Listener {
     public ArrayList<String> doLore() {
         ArrayList<String> lore = new ArrayList<String>();
         //We'll add a blank line if the item has any stats, for UI cleanliness between the stats and lore.
-        try {for (String string : ability.getDescription()) {lore.add(ChatColor.GRAY + string);}}
-        catch(NullPointerException e) {lore.add(ChatColor.RED + "No description set.");}
+        try {
+            for (String string : ability.getDescription()) {
+                lore.add(ChatColor.GRAY + string);
+            }
+        } catch (NullPointerException e) {
+            lore.add(ChatColor.RED + "No description set.");
+        }
         lore.add(" ");
         boolean shouldAddSpace = false;
 
@@ -159,19 +183,28 @@ public abstract class Ability implements Listener {
             shouldAddSpace = true;
         }
         if (ability.getDefenseBoost() != 0) {
-            lore.add(ChatColor.DARK_GRAY + "Defense: " + ChatColor.GREEN +  "+" + ability.getDefenseBoost());
+            lore.add(ChatColor.DARK_GRAY + "Defense: " + ChatColor.GREEN + "+" + ability.getDefenseBoost());
             shouldAddSpace = true;
         }
 
         if (shouldAddSpace) lore.add(" ");
-        if(ability.getCost() != 0 && !stats.useTemperature()) lore.add(ChatColor.DARK_GRAY + "Stamina Cost: " + ChatColor.DARK_AQUA + ability.getCost());
-        if (ability.getCost() != 0 && stats.useTemperature()) lore.add(ChatColor.DARK_GRAY + "Temperature Cost: " + ChatColor.GREEN + ability.getCost());
-        if (ability.getCooldown() != 0) lore.add(ChatColor.DARK_GRAY + "Cooldown: " + ChatColor.GREEN + (float)ability.getCooldown() / 1000 + "s");
+        if (ability.getCost() != 0 && !stats.useTemperature())
+            lore.add(ChatColor.DARK_GRAY + "Stamina Cost: " + ChatColor.DARK_AQUA + ability.getCost());
+        if (ability.getCost() != 0 && stats.useTemperature())
+            lore.add(ChatColor.DARK_GRAY + "Temperature Cost: " + ChatColor.GREEN + ability.getCost());
+        if (ability.getCooldown() != 0)
+            lore.add(ChatColor.DARK_GRAY + "Cooldown: " + ChatColor.GREEN + (float) ability.getCooldown() / 1000 + "s");
 
         return lore;
     }
-    public Abilities getAbility() {return ability;}
-    public net.herobrine.gamecore.Class getQuirk() {return quirk;}
+
+    public Abilities getAbility() {
+        return ability;
+    }
+
+    public net.herobrine.gamecore.Class getQuirk() {
+        return quirk;
+    }
 
     public boolean shouldDoAbility(Player player) {
         if (!arena.getState().equals(GameState.LIVE)) {
@@ -191,7 +224,7 @@ public abstract class Ability implements Listener {
         }
 
         if (this.hasCooldown()) {
-            if(System.currentTimeMillis() - cooldown <= this.getAbility().getCooldown()) {
+            if (System.currentTimeMillis() - cooldown <= this.getAbility().getCooldown()) {
                 player.sendMessage(ChatColor.RED + "This ability is currently on cooldown!");
                 player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f, 2f);
                 GameCoreMain.getInstance().sendActionBar(player, "&c&lON COOLDOWN");
@@ -220,7 +253,7 @@ public abstract class Ability implements Listener {
                 Method noPassMethod = subClass.getDeclaredMethod("doNoPass", Player.class);
                 boolean passCase = (boolean) doesCasePassMethod.invoke(this, player);
 
-                if(!passCase) {
+                if (!passCase) {
                     noPassMethod.invoke(this, player);
                     return false;
                 }
@@ -247,6 +280,7 @@ public abstract class Ability implements Listener {
         Player player = Bukkit.getPlayer(uuid);
         ItemBuilder stack = new ItemBuilder(Material.SULPHUR);
         stack.setDisplayName(ChatColor.GRAY + ChatColor.stripColor(ability.getDisplay()) + " (On Cooldown)");
+        stack.setLore(doLore());
         player.getInventory().setItem(slot, stack.build());
         if (shouldScheduleTask()) {
             float time = (((float) this.ability.getCooldown() / 1000) * 20);
@@ -258,11 +292,12 @@ public abstract class Ability implements Listener {
                     if (!isActive()) return;
                     player.getInventory().setItem(slot, getItem());
                 }
-            }.runTaskLater(QuirkBattlesPlugin.getInstance(), (long)time);
+            }.runTaskLater(QuirkBattlesPlugin.getInstance(), (long) time);
             return;
         }
         new BukkitRunnable() {
             int seconds = Math.round((float) ability.getCooldown() / 1000);
+
             @Override
             public void run() {
                 if (!Manager.isPlaying(player)) {
@@ -312,11 +347,12 @@ public abstract class Ability implements Listener {
         boolean isLeftClick = event.getAction().equals(Action.LEFT_CLICK_AIR) || event.getAction().equals(Action.LEFT_CLICK_BLOCK);
 
         // TODO - Add Right/Left Click setting to execute ability.
-       // if (this.getAbility().getType().equals(AbilityTypes.RIGHT_CLICK) && isRightClick && shouldAct) executeAbility(player);
+        // if (this.getAbility().getType().equals(AbilityTypes.RIGHT_CLICK) && isRightClick && shouldAct) executeAbility(player);
 
-       // if (this.getAbility().getType().equals(AbilityTypes.LEFT_CLICK) && isLeftClick && shouldAct) executeAbility(player);
+        // if (this.getAbility().getType().equals(AbilityTypes.LEFT_CLICK) && isLeftClick && shouldAct) executeAbility(player);
 
     }
+
     @EventHandler
     public void onHeld(PlayerItemHeldEvent event) {
         Player player = event.getPlayer();
@@ -333,7 +369,7 @@ public abstract class Ability implements Listener {
 
     @EventHandler
     public void onSneak(PlayerToggleSneakEvent event) {
-    //TODO Sneak Abilities?
+        //TODO Sneak Abilities?
     }
 
     public void setActive(boolean active) {
@@ -342,14 +378,17 @@ public abstract class Ability implements Listener {
             Bukkit.getPlayer(uuid).getInventory().setItem(this.slot, getItem());
         }
     }
-    public boolean isActive() {return active;}
+
+    public boolean isActive() {
+        return active;
+    }
 
     public void spawnRGBParticles(Location loc, float red, float green, float blue, boolean sendToSelf) {
-        PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(EnumParticle.REDSTONE, true, (float) loc.getX(), (float) loc.getY(), (float) loc.getZ(), red/255, green/255, blue/255, (float) 1, 0);
+        PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(EnumParticle.REDSTONE, true, (float) loc.getX(), (float) loc.getY(), (float) loc.getZ(), red / 255, green / 255, blue / 255, (float) 1, 0);
 
         if (sendToSelf) arena.sendPacket(packet);
         else {
-            for (UUID uuid: arena.getPlayers()) {
+            for (UUID uuid : arena.getPlayers()) {
                 if (uuid == this.uuid) continue;
                 GameCoreMain.getInstance().sendPacket(Bukkit.getPlayer(uuid), packet);
             }

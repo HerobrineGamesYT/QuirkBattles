@@ -2,7 +2,11 @@ package net.herobrine.quirkbattle.menus;
 
 import net.herobrine.core.HerobrinePVPCore;
 import net.herobrine.core.ItemTypes;
-import net.herobrine.gamecore.*;
+import net.herobrine.gamecore.Arena;
+import net.herobrine.gamecore.ClassTypes;
+import net.herobrine.gamecore.Games;
+import net.herobrine.gamecore.ItemBuilder;
+import net.herobrine.gamecore.Manager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -23,7 +27,7 @@ import java.util.List;
 public class QuirkSelector implements Listener {
     public void applyQuirkSelector(Player player) {
         Inventory gui = Bukkit.createInventory(null, 54, ChatColor.GRAY + "Choose your quirk!");
-        int[] fillers = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44, 45, 46,47,48,49,50,51,52,53};
+        int[] fillers = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53};
         // we'll only add up to 20 quirks.
         int[] classSlots = new int[]{11, 12, 13, 14, 15, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 38, 39, 40, 41, 42};
 
@@ -74,7 +78,7 @@ public class QuirkSelector implements Listener {
 
         if (e.getView().getTitle()
                 .contains(ChatColor.translateAlternateColorCodes('&', "&7Choose your quirk!"))
-                 && e.getCurrentItem() != null) {
+                && e.getCurrentItem() != null) {
 
             String classString = null;
             if (e.getCurrentItem().getType() != Material.AIR && e.getCurrentItem().getType() != Material.STAINED_GLASS_PANE)
@@ -109,12 +113,13 @@ public class QuirkSelector implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractEvent e) {
-    Player player = e.getPlayer();
+        Player player = e.getPlayer();
         if (player.getItemInHand() != null && player.getItemInHand().getType() != Material.AIR) {
             if (player.getItemInHand().getItemMeta() != null
                     && player.getItemInHand().getItemMeta().getDisplayName() != null) {
                 if (Manager.isPlaying(player)) {
-                    if (Manager.getArena(player).getGame().equals(Games.QUIRK_BATTTLE) && player.getItemInHand().getItemMeta().getDisplayName().equalsIgnoreCase(ChatColor.AQUA + "Class Selector")) applyQuirkSelector(player);
+                    if (Manager.getArena(player).getGame().equals(Games.QUIRK_BATTTLE) && player.getItemInHand().getItemMeta().getDisplayName().equalsIgnoreCase(ChatColor.AQUA + "Class Selector"))
+                        applyQuirkSelector(player);
                 }
             }
 

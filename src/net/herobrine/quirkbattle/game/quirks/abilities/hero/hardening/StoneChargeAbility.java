@@ -1,8 +1,10 @@
 package net.herobrine.quirkbattle.game.quirks.abilities.hero.hardening;
 
 import net.herobrine.core.HerobrinePVPCore;
-import net.herobrine.gamecore.*;
+import net.herobrine.gamecore.Arena;
 import net.herobrine.gamecore.Class;
+import net.herobrine.gamecore.GameState;
+import net.herobrine.gamecore.Manager;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
@@ -24,35 +26,36 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 public class StoneChargeAbility extends Ability implements SpecialCase {
+    private Hardening hardening;
+    private Player player;
+
+    private boolean isCharging;
+
     public StoneChargeAbility(Abilities ability, Class quirk, int id, int slot) {
         super(ability, quirk, id, slot);
         this.hardening = (Hardening) quirk;
         this.player = Bukkit.getPlayer(uuid);
     }
 
-    Hardening hardening;
-    Player player;
-
-    boolean isCharging;
 
     @Override
     public void doAbility(Player player) {
-    arena.getQuirkBattleGame().getStats(player).setDefense(arena.getQuirkBattleGame().getStats(player).getDefense() + ability.getDefenseBoost());
-    player.setWalkSpeed(.4F);
-    player.playSound(player.getLocation(), Sound.ZOMBIE_WOOD, 1f, 1f);
-    player.sendMessage(ability.getDisplay() + ChatColor.GREEN + " has been activated!");
-    isCharging = true;
-    doStoneChargeCollisionChecks(player);
-    new BukkitRunnable() {
-        @Override
-        public void run() {
-        if (isCharging) {
-            stopStoneCharge();
-            player.sendMessage(ChatColor.RED + "You couldn't hit anybody with your " + ability.getDisplay() + "! Charge a little harder next time.");
-            player.playSound(player.getLocation(), Sound.BAT_IDLE, 1f, 1f);
-        }
-        }
-    }.runTaskLater(QuirkBattlesPlugin.getInstance(), 100L);
+        arena.getQuirkBattleGame().getStats(player).setDefense(arena.getQuirkBattleGame().getStats(player).getDefense() + ability.getDefenseBoost());
+        player.setWalkSpeed(.4F);
+        player.playSound(player.getLocation(), Sound.ZOMBIE_WOOD, 1f, 1f);
+        player.sendMessage(ability.getDisplay() + ChatColor.GREEN + " has been activated!");
+        isCharging = true;
+        doStoneChargeCollisionChecks(player);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (isCharging) {
+                    stopStoneCharge();
+                    player.sendMessage(ChatColor.RED + "You couldn't hit anybody with your " + ability.getDisplay() + "! Charge a little harder next time.");
+                    player.playSound(player.getLocation(), Sound.BAT_IDLE, 1f, 1f);
+                }
+            }
+        }.runTaskLater(QuirkBattlesPlugin.getInstance(), 100L);
 
     }
 
@@ -81,8 +84,7 @@ public class StoneChargeAbility extends Ability implements SpecialCase {
                     cancel();
                     hasHit.clear();
                     stopStoneCharge();
-                }
-                else {
+                } else {
                     for (Entity en : player.getNearbyEntities(1, 0.5, 1)) {
                         if (en.getType().equals(EntityType.PLAYER)) {
                             Player pl1 = (Player) en;
@@ -96,8 +98,7 @@ public class StoneChargeAbility extends Ability implements SpecialCase {
                                     pl1.sendMessage(HerobrinePVPCore.translateString("&6" + player.getName() + "&a just hit you with their &l" + ability.getDisplay() + " &r&aattack!"));
                                     player.sendMessage(HerobrinePVPCore.translateString("&aYou just hit &6" + pl1.getName() + "&a with your &l" + ability.getDisplay() + " &r&aattack!"));
                                 }
-                            } else if (pl1 != player && arena.getTeam(pl1) != arena.getTeam(player)
-                                    && !hasHit.contains(player.getUniqueId()) && arena.getQuirkBattleGame().getAlivePlayers().contains(pl1.getUniqueId())) {
+                            } else if (pl1 != player && arena.getTeam(pl1) != arena.getTeam(player) && !hasHit.contains(player.getUniqueId()) && arena.getQuirkBattleGame().getAlivePlayers().contains(pl1.getUniqueId())) {
                                 hasHit.add(player.getUniqueId());
                                 doDamageTo(player, pl1, ability.getDamage(), CustomDeathCause.STONE_CHARGE);
                                 playHitFX(pl1.getLocation());
@@ -137,7 +138,7 @@ public class StoneChargeAbility extends Ability implements SpecialCase {
 
     @Override
     public void doNoPass(Player player) {
-    player.sendMessage(ChatColor.RED + "You are already charging!");
-    player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f,1f);
+        player.sendMessage(ChatColor.RED + "You are already charging!");
+        player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f, 1f);
     }
 }

@@ -3,25 +3,45 @@ package net.herobrine.quirkbattle.game;
 import net.herobrine.core.HerobrinePVPCore;
 import net.herobrine.core.SongPlayer;
 import net.herobrine.core.Songs;
-import net.herobrine.gamecore.*;
+import net.herobrine.gamecore.Arena;
+import net.herobrine.gamecore.ClassTypes;
+import net.herobrine.gamecore.GameCoreMain;
+import net.herobrine.gamecore.GameState;
+import net.herobrine.gamecore.GameType;
+import net.herobrine.gamecore.Games;
+import net.herobrine.gamecore.Manager;
+import net.herobrine.gamecore.Teams;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.files.Config;
 import net.herobrine.quirkbattle.game.quirks.abilities.QuirkAbilityManager;
 import net.herobrine.quirkbattle.game.stats.PlayerStats;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Sound;
+import org.bukkit.WorldBorder;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scoreboard.*;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class QuirkBattlesGame {
 
-    private Arena arena;
+    private final Arena arena;
     private GameType mod;
     private int seconds = 210;
     private long collisionTicks;
@@ -39,11 +59,11 @@ public class QuirkBattlesGame {
     private final Map<UUID, UUID[]> opponents = new HashMap<>();
 
     private Region region;
-    private QuirkAbilityManager abilityManager;
+    private final QuirkAbilityManager abilityManager;
 
     private boolean areRegionsInitialized;
 
-    private WorldBorder border;
+    private final WorldBorder border;
 
     private int aliveRedPlayers = 0;
     private int aliveBluePlayers = 0;
@@ -62,6 +82,7 @@ public class QuirkBattlesGame {
         this.region = new Region(Config.getFirstPosition(arena.getID()), Config.getSecondPosition(arena.getID()));
         areRegionsInitialized = true;
     }
+
     public void start(GameType type) {
         this.mod = type;
         this.aliveRedPlayers = 0;
@@ -126,7 +147,7 @@ public class QuirkBattlesGame {
                 if (player != player1) {
                     Team opp = board.registerNewTeam("opponent");
                     opp.addEntry(ChatColor.RED.toString());
-                    String name  = player1.getName().substring(0, Math.min(player1.getName().length(), 13));
+                    String name = player1.getName().substring(0, Math.min(player1.getName().length(), 13));
                     opp.setPrefix(HerobrinePVPCore.getFileManager().getRank(player1).getColor() + name);
                     opp.setSuffix(" " + ChatColor.GREEN + "100" + ChatColor.RED + "❤");
                     obj.getScore(ChatColor.RED.toString()).setScore(3);
@@ -151,7 +172,9 @@ public class QuirkBattlesGame {
         }
 
 
-        for (UUID uuid : arena.getClasses().keySet()) {arena.getClasses().get(uuid).onStart(Bukkit.getPlayer(uuid));}
+        for (UUID uuid : arena.getClasses().keySet()) {
+            arena.getClasses().get(uuid).onStart(Bukkit.getPlayer(uuid));
+        }
         arena.sendMessage(
                 ChatColor.translateAlternateColorCodes('&', "&a&m&l----------------------------------------"));
         arena.sendMessage(ChatColor.translateAlternateColorCodes('&', "                   &f&lQuirk Battle"));
@@ -168,9 +191,7 @@ public class QuirkBattlesGame {
     }
 
 
-
     public void startTeamsGame() {
-        int i = 0;
         for (UUID uuid : arena.getPlayers()) {
             Player player = Bukkit.getPlayer(uuid);
             Scoreboard board = Bukkit.getScoreboardManager().getNewScoreboard();
@@ -205,13 +226,13 @@ public class QuirkBattlesGame {
             int score = 6;
             int loop = 0;
             List<UUID> opps = new ArrayList<>();
-            ChatColor[] colors = new ChatColor[] {ChatColor.BLUE, ChatColor.DARK_PURPLE, ChatColor.BLACK, ChatColor.DARK_GRAY, ChatColor.DARK_GREEN};
+            ChatColor[] colors = new ChatColor[]{ChatColor.BLUE, ChatColor.DARK_PURPLE, ChatColor.BLACK, ChatColor.DARK_GRAY, ChatColor.DARK_GREEN};
             for (UUID uuid1 : arena.getPlayers()) {
                 Player player1 = Bukkit.getPlayer(uuid1);
                 if (arena.getTeam(player) != arena.getTeam(player1)) {
                     Team opp = board.registerNewTeam("opponent" + loop);
                     opp.addEntry(colors[loop].toString());
-                    String name  = player1.getName().substring(0, Math.min(player1.getName().length(), 13));
+                    String name = player1.getName().substring(0, Math.min(player1.getName().length(), 13));
                     opp.setPrefix(arena.getTeam(player1).getColor() + name);
                     opp.setSuffix(" " + ChatColor.GREEN + "100" + ChatColor.RED + "❤");
                     obj.getScore(colors[loop].toString()).setScore(score);
@@ -220,14 +241,13 @@ public class QuirkBattlesGame {
                     loop++;
                 }
             }
-            if(!opps.isEmpty()) opponents.put(uuid, opps.toArray(new UUID[0]));
+            if (!opps.isEmpty()) opponents.put(uuid, opps.toArray(new UUID[0]));
             opps.clear();
             Score blank3 = obj.getScore("    ");
             blank3.setScore(2);
             Score mode = obj.getScore(ChatColor.WHITE + "Mode: " + mod.getDisplay());
             mode.setScore(1);
 
-            int nameCount = 0;
             Team redTeam = board.registerNewTeam("redTeam");
             redTeam.setDisplayName(ChatColor.RED + "RED");
             redTeam.setPrefix(ChatColor.RED + "RED ");
@@ -262,16 +282,15 @@ public class QuirkBattlesGame {
                 else if (arena.getTeam(player1).equals(Teams.BLUE)) blueTeam.addPlayer(player1);
                 else if (arena.getTeam(player1).equals(Teams.HERO)) heroTeam.addPlayer(player1);
                 else if (arena.getTeam(player1).equals(Teams.VILLAIN)) villainTeam.addPlayer(player1);
-                nameCount++;
             }
 
 
             player.setMaxHealth(40.0);
             player.setHealth(40.0);
             player.setScoreboard(board);
-            if (mod.getAvailableTeams()[0].equals(arena.getTeam(player))) player.teleport(Config.getSpawnTeam1(arena.getID()));
+            if (mod.getAvailableTeams()[0].equals(arena.getTeam(player)))
+                player.teleport(Config.getSpawnTeam1(arena.getID()));
             else player.teleport(Config.getSpawnTeam2(arena.getID()));
-            i++;
             if (!Manager.hasKit(player)) {
                 arena.setClass(uuid, ClassTypes.ONEFORALL);
                 player.sendMessage(HerobrinePVPCore.translateString("&6&lAll Might &r&6has granted you &aOne For All&6! Use it wisely."));
@@ -281,7 +300,9 @@ public class QuirkBattlesGame {
         }
 
 
-        for (UUID uuid : arena.getClasses().keySet()) {arena.getClasses().get(uuid).onStart(Bukkit.getPlayer(uuid));}
+        for (UUID uuid : arena.getClasses().keySet()) {
+            arena.getClasses().get(uuid).onStart(Bukkit.getPlayer(uuid));
+        }
         arena.sendMessage(
                 ChatColor.translateAlternateColorCodes('&', "&a&m&l----------------------------------------"));
         arena.sendMessage(ChatColor.translateAlternateColorCodes('&', "                   &f&lQuirk Battle"));
@@ -329,13 +350,13 @@ public class QuirkBattlesGame {
             int score = 6;
             int loop = 0;
             List<UUID> opps = new ArrayList<>();
-            ChatColor[] colors = new ChatColor[] {ChatColor.BLUE, ChatColor.DARK_PURPLE, ChatColor.BLACK, ChatColor.DARK_GRAY, ChatColor.DARK_GREEN};
+            ChatColor[] colors = new ChatColor[]{ChatColor.BLUE, ChatColor.DARK_PURPLE, ChatColor.BLACK, ChatColor.DARK_GRAY, ChatColor.DARK_GREEN};
             for (UUID uuid1 : arena.getPlayers()) {
                 Player player1 = Bukkit.getPlayer(uuid1);
                 if (player != player1) {
                     Team opp = board.registerNewTeam("opponent" + loop);
                     opp.addEntry(colors[loop].toString());
-                    String name  = player1.getName().substring(0, Math.min(player1.getName().length(), 13));
+                    String name = player1.getName().substring(0, Math.min(player1.getName().length(), 13));
                     opp.setPrefix(HerobrinePVPCore.getRankColor(player1) + name);
                     opp.setSuffix(" " + ChatColor.GREEN + "100" + ChatColor.RED + "❤");
                     obj.getScore(colors[loop].toString()).setScore(score);
@@ -344,14 +365,13 @@ public class QuirkBattlesGame {
                     loop++;
                 }
             }
-            if(!opps.isEmpty()) opponents.put(uuid, opps.toArray(new UUID[0]));
+            if (!opps.isEmpty()) opponents.put(uuid, opps.toArray(new UUID[0]));
             opps.clear();
             Score blank3 = obj.getScore("    ");
             blank3.setScore(2);
             Score mode = obj.getScore(ChatColor.WHITE + "Mode: " + mod.getDisplay());
             mode.setScore(1);
 
-            int nameCount = 0;
 
             player.setMaxHealth(40.0);
             player.setHealth(40.0);
@@ -384,7 +404,9 @@ public class QuirkBattlesGame {
         }
 
 
-        for (UUID uuid : arena.getClasses().keySet()) {arena.getClasses().get(uuid).onStart(Bukkit.getPlayer(uuid));}
+        for (UUID uuid : arena.getClasses().keySet()) {
+            arena.getClasses().get(uuid).onStart(Bukkit.getPlayer(uuid));
+        }
         arena.sendMessage(
                 ChatColor.translateAlternateColorCodes('&', "&a&m&l----------------------------------------"));
         arena.sendMessage(ChatColor.translateAlternateColorCodes('&', "                   &f&lQuirk Battle"));
@@ -396,17 +418,19 @@ public class QuirkBattlesGame {
         startRegionCollision();
     }
 
-    public QuirkAbilityManager getAbilityManager() {return abilityManager;}
+    public QuirkAbilityManager getAbilityManager() {
+        return abilityManager;
+    }
 
     public void regenPlayerHealth(Player player) {
         int randomNumber = ThreadLocalRandom.current().nextInt(1, 2);
 
-        double regenPercent = randomNumber *.01;
+        double regenPercent = randomNumber * .01;
 
         int health = getStats(player).getHealth();
         int maxHealth = getStats(player).getMaxHealth();
 
-        int newHealth = (int)Math.round((double)maxHealth*regenPercent);
+        int newHealth = (int) Math.round((double) maxHealth * regenPercent);
 
         if (newHealth < 1) newHealth = 1;
 
@@ -415,6 +439,7 @@ public class QuirkBattlesGame {
 
         getStats(player).setHealth(newHealthReal);
     }
+
     public void updatePlayerStats(Player player) {
         if (!player.isOnline()) return;
         if (!arena.getPlayers().contains(player.getUniqueId())) return;
@@ -423,11 +448,12 @@ public class QuirkBattlesGame {
         int mana = getStats(player).getMana();
         int intelligence = getStats(player).getIntelligence();
 
-        double healthPercent = (double)health / (double)getStats(player).getMaxHealth();
+        double healthPercent = (double) health / (double) getStats(player).getMaxHealth();
         double playerHealth = player.getMaxHealth() * healthPercent;
-        if(playerHealth > 1) player.setHealth(playerHealth);
+        if (playerHealth > 1) player.setHealth(playerHealth);
         else player.setHealth(2);
-        if (!getStats(player).useTemperature()) GameCoreMain.getInstance().sendActionBar(player, "&c" + health + "❤   &a" + defense + "❈ Defense   &3" + mana + "/" + intelligence + "⸎ Stamina");
+        if (!getStats(player).useTemperature())
+            GameCoreMain.getInstance().sendActionBar(player, "&c" + health + "❤   &a" + defense + "❈ Defense   &3" + mana + "/" + intelligence + "⸎ Stamina");
         else {
             ChatColor color;
             int temp = getStats(player).getTemp();
@@ -436,19 +462,26 @@ public class QuirkBattlesGame {
             if (temp > baseTemp) color = ChatColor.RED;
             else if (temp < baseTemp) color = ChatColor.AQUA;
             else color = ChatColor.YELLOW;
-            GameCoreMain.getInstance().sendActionBar(player, "&c" + health + "❤   &a" + defense + "❈ Defense   " + color  + temp + "/" + maxTemp + "❄ Temperature");
+            GameCoreMain.getInstance().sendActionBar(player, "&c" + health + "❤   &a" + defense + "❈ Defense   " + color + temp + "/" + maxTemp + "❄ Temperature");
         }
     }
 
-    public List<UUID> getAlivePlayers() {return alivePlayers;}
+    public List<UUID> getAlivePlayers() {
+        return alivePlayers;
+    }
+
     public PlayerStats getStats(Player player) {
         return playerStatsMap.get(player.getUniqueId());
     }
-    public Map<UUID, PlayerStats> getPlayerStatsMap() {return playerStatsMap;}
+
+    public Map<UUID, PlayerStats> getPlayerStatsMap() {
+        return playerStatsMap;
+    }
+
     public ClassTypes randomClass() {
         int i = 0;
         do {
-            int pick2 = new Random().nextInt(ClassTypes.values().length);
+            int pick2 = ThreadLocalRandom.current().nextInt(ClassTypes.values().length);
             if (ClassTypes.values()[pick2].getGame().equals(Games.QUIRK_BATTTLE)
                     && !ClassTypes.values()[pick2].isUnlockable()) {
                 i = 1;
@@ -469,8 +502,8 @@ public class QuirkBattlesGame {
             case FOUR_V_FOUR:
             case THREE_V_THREE:
                 if (aliveRedPlayers == 0 && aliveBluePlayers != 0) startEnding(Teams.BLUE);
-                else if(aliveRedPlayers != 0) startEnding(Teams.RED);
-                else startEnding((Teams)null);
+                else if (aliveRedPlayers != 0) startEnding(Teams.RED);
+                else startEnding((Teams) null);
                 break;
             case HEROES_VS_VILLAINS:
                 break;
@@ -479,11 +512,17 @@ public class QuirkBattlesGame {
                 return;
         }
     }
-    public Map<UUID, CustomDeathCause> getCustomDeathCause() {return customDeathCause;}
-    public Map<UUID, UUID> getLastAbilityAttacker() {return lastAbilityAttacker;}
+
+    public Map<UUID, CustomDeathCause> getCustomDeathCause() {
+        return customDeathCause;
+    }
+
+    public Map<UUID, UUID> getLastAbilityAttacker() {
+        return lastAbilityAttacker;
+    }
 
     public void removeAlivePlayer(Teams team) {
-        switch(team) {
+        switch (team) {
             case RED:
                 aliveRedPlayers = aliveRedPlayers - 1;
                 break;
@@ -496,7 +535,8 @@ public class QuirkBattlesGame {
             case VILLAIN:
                 aliveVillainPlayers = aliveVillainPlayers - 1;
                 break;
-            default: return;
+            default:
+                return;
         }
         if (aliveRedPlayers == 0 || aliveBluePlayers == 0) isGameOver();
     }
@@ -528,13 +568,13 @@ public class QuirkBattlesGame {
         }
         arena.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&m&l----------------------------------------"));
         arena.sendMessage(ChatColor.translateAlternateColorCodes('&', "                   &f&lQuirk Battle - " + mod));
-       if (winner != null) arena.sendMessage(HerobrinePVPCore.translateString("&fWinner - " + winner.getName()));
-       else arena.sendMessage(ChatColor.WHITE + "Winner - " + ChatColor.YELLOW + "DRAW!");
-       if(winner != null) arena.distributeRewards(winner.getUniqueId());
-       else arena.distributeRewards((UUID)null);
-       arena.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&m&l----------------------------------------"));
+        if (winner != null) arena.sendMessage(HerobrinePVPCore.translateString("&fWinner - " + winner.getName()));
+        else arena.sendMessage(ChatColor.WHITE + "Winner - " + ChatColor.YELLOW + "DRAW!");
+        if (winner != null) arena.distributeRewards(winner.getUniqueId());
+        else arena.distributeRewards((UUID) null);
+        arena.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a&m&l----------------------------------------"));
 
-       endSeconds = 5;
+        endSeconds = 5;
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -546,7 +586,6 @@ public class QuirkBattlesGame {
             }
         }.runTaskTimer(QuirkBattlesPlugin.getInstance(), 0L, 20L);
     }
-
 
 
     public void startTimer() {
@@ -565,29 +604,32 @@ public class QuirkBattlesGame {
                 String time = String.format("%02d:%02d", seconds / 60, seconds % 60);
                 for (UUID uuid : arena.getPlayers()) {
                     Player player = Bukkit.getPlayer(uuid);
-                   if (getAlivePlayers().contains(player.getUniqueId())) updatePlayerStats(player);
-                   if (player.getScoreboard().getObjective(DisplaySlot.SIDEBAR).getDisplayName().contains("Quirk Battles")) {
+                    if (getAlivePlayers().contains(player.getUniqueId())) updatePlayerStats(player);
+                    if (player.getScoreboard().getObjective(DisplaySlot.SIDEBAR).getDisplayName().contains("Quirk Battles")) {
                         player.getScoreboard().getTeam("qbtimer").setSuffix(ChatColor.GREEN + time);
                         if (mod.equals(GameType.ONE_V_ONE)) {
                             if (player.getScoreboard().getTeam("opponent") != null) {
                                 Player opp = Bukkit.getPlayer(ChatColor.stripColor(player.getScoreboard().getTeam("opponent").getPrefix()));
-                                if(playerStatsMap.get(opp.getUniqueId()).getHealth() == 0) player.getScoreboard().getTeam("opponent").setSuffix(" " + ChatColor.RED + "DEAD");
-                                else player.getScoreboard().getTeam("opponent").setSuffix(" " + ChatColor.GREEN + getStats(opp).getHealth() + ChatColor.RED + "❤");
+                                if (playerStatsMap.get(opp.getUniqueId()).getHealth() == 0)
+                                    player.getScoreboard().getTeam("opponent").setSuffix(" " + ChatColor.RED + "DEAD");
+                                else
+                                    player.getScoreboard().getTeam("opponent").setSuffix(" " + ChatColor.GREEN + getStats(opp).getHealth() + ChatColor.RED + "❤");
                             }
-                        }
-
-                        else {
+                        } else {
                             int i = 0;
                             if (!opponents.isEmpty()) {
                                 for (UUID uuid1 : opponents.get(uuid)) {
-                                    if(playerStatsMap.get(uuid1).getHealth() == 0) player.getScoreboard().getTeam("opponent" + i).setSuffix(" " + ChatColor.RED + "DEAD");
-                                    else player.getScoreboard().getTeam("opponent" + i).setSuffix(" " + ChatColor.GREEN + playerStatsMap.get(uuid1).getHealth() + ChatColor.RED + "❤");
+                                    if (playerStatsMap.get(uuid1).getHealth() == 0)
+                                        player.getScoreboard().getTeam("opponent" + i).setSuffix(" " + ChatColor.RED + "DEAD");
+                                    else
+                                        player.getScoreboard().getTeam("opponent" + i).setSuffix(" " + ChatColor.GREEN + playerStatsMap.get(uuid1).getHealth() + ChatColor.RED + "❤");
                                     i++;
                                 }
                             }
                         }
 
-                        if(getStats(player).getHealth() < getStats(player).getMaxHealth() && seconds % 2 == 0 && getAlivePlayers().contains(player.getUniqueId())) regenPlayerHealth(player);
+                        if (getStats(player).getHealth() < getStats(player).getMaxHealth() && seconds % 2 == 0 && getAlivePlayers().contains(player.getUniqueId()))
+                            regenPlayerHealth(player);
                     }
                 }
                 seconds--;
@@ -600,7 +642,7 @@ public class QuirkBattlesGame {
         border.setSize(100);
         arena.playSound(Sound.ENDERDRAGON_GROWL);
         arena.sendMessage(HerobrinePVPCore.translateString("&c&lThe World Border is now shrinking..."));
-        arena.sendTitle("&c&lCAUTION", "&eThe border is shrinking!", 0,1,0);
+        arena.sendTitle("&c&lCAUTION", "&eThe border is shrinking!", 0, 1, 0);
         border.setSize(10, 60);
     }
 
@@ -661,7 +703,7 @@ public class QuirkBattlesGame {
     public boolean isOutsideOfBorder(Player p) {
         Location loc = p.getLocation();
         WorldBorder border = p.getWorld().getWorldBorder();
-        double size = border.getSize()/2;
+        double size = border.getSize() / 2;
         Location center = border.getCenter();
         double x = loc.getX() - center.getX(), z = loc.getZ() - center.getZ();
         return ((x > size || (-x) > size) || (z > size || (-z) > size));
@@ -681,7 +723,7 @@ public class QuirkBattlesGame {
                     return;
                 }
 
-                for (UUID uuid: arena.getPlayers()) {
+                for (UUID uuid : arena.getPlayers()) {
                     Player player = Bukkit.getPlayer(uuid);
                     if (arena.getSpectators().contains(uuid)) continue;
                     if (!region.containsLocation(player.getLocation()) || isOutsideOfBorder(player)) {

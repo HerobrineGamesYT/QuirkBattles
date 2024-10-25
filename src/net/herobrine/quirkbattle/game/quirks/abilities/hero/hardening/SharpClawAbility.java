@@ -10,22 +10,26 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 public class SharpClawAbility extends Ability implements SpecialCase {
+    private Hardening hardening;
+
     public SharpClawAbility(Abilities ability, Class quirk, int id, int slot) {
         super(ability, quirk, id, slot);
         this.hardening = (Hardening) quirk;
     }
-    Hardening hardening;
+
     @Override
     public void doAbility(Player player) {
-    hardening.setSharpClaw(true);
+        hardening.setSharpClaw(true);
     }
 
     @Override
-    public boolean doesCasePass(Player player) {return !hardening.isClawSharp();}
+    public boolean doesCasePass(Player player) {
+        return !hardening.isClawSharp();
+    }
 
     @Override
     public void doNoPass(Player player) {
-    player.sendMessage(ChatColor.RED + "Your attacks have already been sharpened!");
-    player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f,1f);
+        player.sendMessage(ChatColor.RED + "Your attacks have already been sharpened!");
+        player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f, 1f);
     }
 }

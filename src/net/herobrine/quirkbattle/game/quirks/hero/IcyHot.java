@@ -1,8 +1,12 @@
 package net.herobrine.quirkbattle.game.quirks.hero;
 
 import net.herobrine.core.HerobrinePVPCore;
-import net.herobrine.gamecore.*;
+import net.herobrine.gamecore.Arena;
 import net.herobrine.gamecore.Class;
+import net.herobrine.gamecore.ClassTypes;
+import net.herobrine.gamecore.GameState;
+import net.herobrine.gamecore.ItemBuilder;
+import net.herobrine.gamecore.Manager;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.event.FrostbiteEvent;
 import net.herobrine.quirkbattle.event.OverheatEvent;
@@ -29,26 +33,25 @@ import java.util.List;
 import java.util.UUID;
 
 public class IcyHot extends Class implements Quirk, Switchable {
+    private final List<Ability> abilities;
+    private final Arena arena;
+    private PlayerStats stats;
+    private boolean isSwitcherActive = false;
+    private AbilitySets currentSet;
+    private AbilitySets[] availableSets;
+    private boolean isStunned = false;
+
     public IcyHot(UUID uuid) {
         super(uuid, ClassTypes.ICYHOT);
         arena = Manager.getArena(Bukkit.getPlayer(uuid));
         this.abilities = new ArrayList<>();
-        this.availableSets = new AbilitySets[] {AbilitySets.ICE, AbilitySets.FIRE};
+        this.availableSets = new AbilitySets[]{AbilitySets.ICE, AbilitySets.FIRE};
     }
 
-    List<Ability> abilities;
-    PlayerStats stats;
-    Arena arena;
-
-    boolean isSwitcherActive = false;
-    AbilitySets currentSet;
-    AbilitySets[] availableSets;
-
-    boolean isStunned = false;
 
     @Override
     public void onStart(Player player) {
-        stats = new PlayerStats(player.getUniqueId(),200, 200, 40, 0, 0, 0, true, 50, 100);
+        stats = new PlayerStats(player.getUniqueId(), 200, 200, 40, 0, 0, 0, true, 50, 100);
         arena.getQuirkBattleGame().getPlayerStatsMap().put(player.getUniqueId(), stats);
         player.getInventory().clear();
         ItemBuilder defaultHeldItem = new ItemBuilder(Material.STICK);
@@ -88,7 +91,7 @@ public class IcyHot extends Class implements Quirk, Switchable {
 
         if (!isSwitcherActive) {
             arena.getQuirkBattleGame().getAbilityManager().registerAbility(Abilities.OFA_ABILITY_SWITCH_TEST, this, i);
-           isSwitcherActive = true;
+            isSwitcherActive = true;
 
         }
 
@@ -117,8 +120,7 @@ public class IcyHot extends Class implements Quirk, Switchable {
             }
             abilities.clear();
             registerAbilities(set);
-        }
-        else {
+        } else {
             for (Ability ability : abilities) {
                 ability.setActive(false);
                 transferList.add(ability);
@@ -164,45 +166,45 @@ public class IcyHot extends Class implements Quirk, Switchable {
                     Bukkit.getPluginManager().callEvent(heat);
                 }
 
-               stats.setTemp(tempChange + stats.getTemp());
+                stats.setTemp(tempChange + stats.getTemp());
             }
         }.runTaskTimer(QuirkBattlesPlugin.getInstance(), 0L, 20L);
     }
 
     @EventHandler
     public void onFrost(FrostbiteEvent event) {
-    if (event.getQuirk() != this) return;
-    isStunned = true;
-    int damage = 3;
-    int warmPerTick = 2;
+        if (event.getQuirk() != this) return;
+        isStunned = true;
+        int damage = 3;
+        int warmPerTick = 2;
         for (Ability ability : abilities) {
             ability.setActive(false);
         }
-    new BukkitRunnable() {
-        @Override
-        public void run() {
-            if (arena.getState() != GameState.LIVE) {
-                isStunned = false;
-                cancel();
-                return;
-            }
-            if (stats.getTemp() == stats.getBaseTemp()) {
-                cancel();
-                for (Ability ability : abilities) {
-                    ability.setActive(true);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (arena.getState() != GameState.LIVE) {
+                    isStunned = false;
+                    cancel();
+                    return;
                 }
-                isStunned = false;
-                event.getPlayer().sendMessage(HerobrinePVPCore.translateString("&e&lPHEW! &fYou've warmed up now. Be careful!"));
-                return;
+                if (stats.getTemp() == stats.getBaseTemp()) {
+                    cancel();
+                    for (Ability ability : abilities) {
+                        ability.setActive(true);
+                    }
+                    isStunned = false;
+                    event.getPlayer().sendMessage(HerobrinePVPCore.translateString("&e&lPHEW! &fYou've warmed up now. Be careful!"));
+                    return;
+                }
+                if (stats.getTemp() + 1 == stats.getBaseTemp()) stats.setTemp(stats.getBaseTemp());
+                else stats.setTemp(stats.getTemp() + warmPerTick);
+                EntityDamageEvent dmg = new EntityDamageEvent(event.getPlayer(), EntityDamageEvent.DamageCause.CUSTOM, damage);
+                event.getArena().getQuirkBattleGame().getCustomDeathCause().put(event.getPlayer().getUniqueId(), CustomDeathCause.FROSTBITE);
+                event.getArena().getQuirkBattleGame().getLastAbilityAttacker().put(event.getPlayer().getUniqueId(), event.getPlayer().getUniqueId());
+                Bukkit.getPluginManager().callEvent(dmg);
             }
-            if (stats.getTemp() + 1 == stats.getBaseTemp()) stats.setTemp(stats.getBaseTemp());
-            else stats.setTemp(stats.getTemp() + warmPerTick);
-            EntityDamageEvent dmg = new EntityDamageEvent(event.getPlayer(), EntityDamageEvent.DamageCause.CUSTOM, damage);
-            event.getArena().getQuirkBattleGame().getCustomDeathCause().put(event.getPlayer().getUniqueId(), CustomDeathCause.FROSTBITE);
-            event.getArena().getQuirkBattleGame().getLastAbilityAttacker().put(event.getPlayer().getUniqueId(), event.getPlayer().getUniqueId());
-            Bukkit.getPluginManager().callEvent(dmg);
-        }
-    }.runTaskTimer(QuirkBattlesPlugin.getInstance(), 0L, 2L);
+        }.runTaskTimer(QuirkBattlesPlugin.getInstance(), 0L, 2L);
     }
 
     @EventHandler

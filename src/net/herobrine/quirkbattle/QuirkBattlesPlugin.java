@@ -3,7 +3,6 @@ package net.herobrine.quirkbattle;
 import net.herobrine.core.HerobrinePVPCore;
 import net.herobrine.gamecore.GameCoreMain;
 import net.herobrine.quirkbattle.event.QuirkBattlesListener;
-import net.herobrine.quirkbattle.files.Config;
 import net.herobrine.quirkbattle.menus.ModeSelector;
 import net.herobrine.quirkbattle.menus.QuirkSelector;
 import org.bukkit.Bukkit;
@@ -14,6 +13,7 @@ import java.util.logging.Level;
 
 public class QuirkBattlesPlugin extends JavaPlugin {
     public static QuirkBattlesPlugin instance;
+
     @Override
     public void onEnable() {
         instance = this;
@@ -30,7 +30,9 @@ public class QuirkBattlesPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new ModeSelector(), this);
     }
 
-    public static QuirkBattlesPlugin getInstance() {return instance;}
+    public static QuirkBattlesPlugin getInstance() {
+        return instance;
+    }
 
     public GameCoreMain getGameCoreAPI() {
         Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin("GameCore");

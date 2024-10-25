@@ -7,10 +7,12 @@ import net.herobrine.quirkbattle.game.quirks.hero.IcyHot;
 import org.bukkit.entity.Player;
 
 public class GlacierAbility extends Ability {
+
+    private IcyHot icy = (IcyHot) quirk;
+
     public GlacierAbility(Abilities ability, Class quirk, int id, int slot) {
         super(ability, quirk, id, slot);
     }
-    IcyHot icy = (IcyHot) quirk;
 
     @Override
     public void doAbility(Player player) {
