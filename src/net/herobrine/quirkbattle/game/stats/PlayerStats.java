@@ -16,9 +16,9 @@ public class PlayerStats {
     private int strength;
     private int lastRegenMana;
     private boolean useTemperature;
-    private int baseTemp;
-    private int temp;
-    private int maxTemp;
+    private int baseTemp = 0;
+    private int temp = 0;
+    private int maxTemp = 0;
 
     public PlayerStats(UUID uuid, int health, int maxHealth, int defense, int mana, int intelligence, int strength) {
         this.uuid = uuid;

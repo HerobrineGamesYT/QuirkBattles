@@ -32,7 +32,25 @@ public enum Abilities {
     FIRE_ABILITY_TEST(ChatColor.RED + "Fire Ability Test", new String[]{"This is an ability meant to help", "test the temperature system for fire."},
             Material.FIREWORK_CHARGE, 0, 25, 25, 0, 0, 2000, 0, 0, false, false, false),
     ICE_WALL(ChatColor.AQUA + "Ice Wall", new String[]{"Spawn a massive Ice Wall in", "front of you, stunning and damaging", "all enemies caught within it!"},
-            Material.PACKED_ICE, 0, -30, 30, 0, 0, 5000, 0, 10, false, false, false);
+            Material.PACKED_ICE, 0, -30, 0, 0, 0, 10000, 0, 10, false, false, false),
+    CAPTURE(ChatColor.RED + "Capture Tape", new String[] {"Launch out a magical aura that will", "pull and stun any player it hits towards you!"}, Material.FISHING_ROD,
+            0, 10, 10, 0,0,3000, 0, 0,false, false, false),
+    SHARPENED_KNIFE(ChatColor.RED + "Sharpened Knife", new String[] {"Sharpen your knife to greatly increase", "your attack damage for the next 3 hits!"}, Material.IRON_SWORD,
+            0, 10, 10,0,0,4000,0,4,false,true,true),
+    EYEDROPS(ChatColor.RED + "Eye Drops", new String[] {"Take some eye drops and shorten the", "cooldown timer on your erasure ability!"}, Material.GLASS_BOTTLE,
+            0,50,50,0,0,4000,0,0,false,true,false),
+    FIRE_WALL(ChatColor.RED + "Fire Wall", new String[] {"Spawn a wall of fire in", "front of you, dealing massive damage",
+            "and also giving a burn effect", "to your enemies! Also can be used", "to unfreeze yourself or your allies!"}, Material.FLINT, 0, 30, 0, 0,0,9000,
+            0,15,false,false,false),
+    ICE_SHARD(ChatColor.AQUA + "Ice Shards", new String[] {"Shoot 3 Ice projectiles and deal burst", "damage to any enemies that are hit!"}, Material.SNOW, 0, -20, 0,
+            0,0,5000,0,10,false,false,false),
+    FLASHFIRE_FIST(ChatColor.RED + "Flashfire Fist", new String[] {"Power up your first with your flames", "to add burning damage to", "your next melee attack!"},
+            Material.BLAZE_POWDER, 0, 20, 0,0,0,7000,0,6,false,true,true),
+    GLACIER(ChatColor.AQUA + "Glacier", new String[] {"Create a massive Glacier Zone around you,"," slowing down all enemies in its radius", "and dealing a small amount of DPS to them! Will be cancelled ","" +
+            "when you switch your ability set to fire,", "or get frostbite- whichever happens first."}, Material.MONSTER_EGG, 0, 0,-10, 0,0,40000,
+            3,5,false,true,true),
+    FLAME_OVERDRIVE(ChatColor.RED + "Overdrive", new String[] {"Power up your flames and go into maximum overdrive!", "Move faster and apply a burning effect to all enemies that are nearby!"},
+            Material.LAVA_BUCKET, 0, 0, 90, 0,0,40000,3,6,false,true,true);
 
 
     private final String display;
@@ -108,9 +126,7 @@ public enum Abilities {
         return cost;
     }
 
-    public int getMinStamina() {
-        return minStamina;
-    }
+    public int getMinStamina() {return minStamina;}
 
     public long getCooldown() {
         return cooldown;

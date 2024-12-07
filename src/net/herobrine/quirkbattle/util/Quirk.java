@@ -8,6 +8,8 @@ import java.util.List;
 
 public interface Quirk {
     List<Ability> getAbilities();
+
+    boolean isBeingErased();
     boolean shouldUseAbilityAttack();
 
     void useAbilityAttack(Player target);

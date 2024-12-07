@@ -8,10 +8,13 @@ import net.herobrine.gamecore.GameState;
 import net.herobrine.gamecore.ItemBuilder;
 import net.herobrine.gamecore.Manager;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
+import net.herobrine.quirkbattle.event.QuirkErasureEvent;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.abilities.AbilitySets;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.hardening.StoneChargeAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.hardening.UnbreakableAbility;
 import net.herobrine.quirkbattle.game.stats.PlayerStats;
 import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.Bukkit;
@@ -20,6 +23,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -35,6 +39,7 @@ public class Hardening extends Class implements Quirk {
     private Player player;
     private boolean isSharpClaw;
     private boolean isUnbreakable;
+    private boolean isBeingErased = false;
     private int hitCount;
 
     public Hardening(UUID uuid) {
@@ -54,9 +59,9 @@ public class Hardening extends Class implements Quirk {
         defaultItem.setDisplayName(ChatColor.RED + "Soak up damage to gain stamina!");
         player.getInventory().setHeldItemSlot(0);
         player.getInventory().setItem(0, defaultItem.build());
-        abilities.add(arena.getQuirkBattleGame().getAbilityManager().registerAbility(Abilities.SHARP_CLAW, this, 1));
-        abilities.add(arena.getQuirkBattleGame().getAbilityManager().registerAbility(Abilities.STONE_CHARGE, this, 2));
-        abilities.add(arena.getQuirkBattleGame().getAbilityManager().registerAbility(Abilities.UNBREAKABLE, this, 3));
+        abilities.add(arena.getQuirkBattleGame().getAbilityManager().registerAbility(Abilities.SHARP_CLAW, this, 2));
+        abilities.add(arena.getQuirkBattleGame().getAbilityManager().registerAbility(Abilities.STONE_CHARGE, this, 3));
+        abilities.add(arena.getQuirkBattleGame().getAbilityManager().registerAbility(Abilities.UNBREAKABLE, this, 4));
         // let's not do this for now for balancing purposes. doStaminaGainPerSecond();
     }
 
@@ -124,6 +129,11 @@ public class Hardening extends Class implements Quirk {
     }
 
     @Override
+    public boolean isBeingErased() {
+        return isBeingErased;
+    }
+
+    @Override
     public boolean shouldUseAbilityAttack() {
         return isClawSharp();
     }
@@ -163,5 +173,22 @@ public class Hardening extends Class implements Quirk {
             return;
         int stamina = Math.round((float) damage / 5) * 2;
         giveStaminaBoost(stamina);
+    }
+
+    @EventHandler
+    public void onErase(QuirkErasureEvent e) {
+        if (e.getQuirk() != this) return;
+        if (e.isErasing()) {
+           isBeingErased = true;
+           StoneChargeAbility charge =  (StoneChargeAbility) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.STONE_CHARGE);
+           if(charge.isCharging()) charge.stopStoneChargeNoCooldown();
+           setSharpClaw(false);
+           this.hitCount = 0;
+           if (isUnbreakable) {
+               UnbreakableAbility unbreakable = (UnbreakableAbility) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.UNBREAKABLE);
+               unbreakable.stopUnbreakableNoCooldown();
+           }
+        }
+        else isBeingErased = false;
     }
 }

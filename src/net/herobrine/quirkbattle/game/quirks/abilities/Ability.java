@@ -63,6 +63,8 @@ public abstract class Ability implements Listener {
 
     protected boolean active;
 
+    private int cooldownSeconds = 0;
+
     public Ability(Abilities ability, net.herobrine.gamecore.Class quirk, int id, int slot) {
         this.ability = ability;
         this.quirk = quirk;
@@ -165,6 +167,22 @@ public abstract class Ability implements Listener {
         return reader.toBukkit();
     }
 
+    public ItemStack getErasedItem() {
+        net.herobrine.core.ItemBuilder item = new ItemBuilder(Material.REDSTONE);
+
+        item.addItemFlag(ItemFlag.HIDE_ATTRIBUTES);
+        item.addItemFlag(ItemFlag.HIDE_ENCHANTS);
+        item.addItemFlag(ItemFlag.HIDE_UNBREAKABLE);
+        item.setUnbreakable(true);
+
+        item.setDisplayName(ChatColor.RED + ChatColor.stripColor(this.getAbility().getDisplay()) + ChatColor.RED +  " (ERASED)");
+        item.setLore(doLore());
+        ItemStack itemStack = item.build();
+        NBTReader reader = new NBTReader(itemStack);
+        reader.writeStringNBT("id", ability::name);
+        return reader.toBukkit();
+    }
+
     public ArrayList<String> doLore() {
         ArrayList<String> lore = new ArrayList<String>();
         //We'll add a blank line if the item has any stats, for UI cleanliness between the stats and lore.
@@ -206,6 +224,9 @@ public abstract class Ability implements Listener {
         return quirk;
     }
 
+    public int getPlayerMana() {return arena.getQuirkBattleGame().getStats(Bukkit.getPlayer(uuid)).getMana();}
+    public int getPlayerTemp() {return arena.getQuirkBattleGame().getStats(Bukkit.getPlayer(uuid)).getTemp();}
+
     public boolean shouldDoAbility(Player player) {
         if (!arena.getState().equals(GameState.LIVE)) {
             player.sendMessage(ChatColor.RED + "The game isn't live, so you can't use the ability!");
@@ -216,11 +237,52 @@ public abstract class Ability implements Listener {
         int intelligence = arena.getQuirkBattleGame().getStats(player).getIntelligence();
         int mana = arena.getQuirkBattleGame().getStats(player).getMana();
 
-        if (this.hasManaCost() && arena.getQuirkBattleGame().getStats(player).getMana() < this.getAbility().getCost()) {
+
+        //Cost is checked before min stamina that the message is not triggered accidentally!
+        if (this.hasManaCost() && getPlayerMana() < this.getAbility().getCost()) {
             player.sendMessage(ChatColor.RED + "Not enough stamina!");
             player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f, 2f);
             GameCoreMain.getInstance().sendActionBar(player, "&c&lNOT ENOUGH STAMINA");
             return false;
+        }
+
+
+        if (this.getAbility().getMinStamina() != 0) {
+            // If min stamina is set to a negative number in Abilities enum, game will check if player's stamina is LESS THAN OR EQUAL TO that number.
+            if (getAbility().getMinStamina() < 0) {
+                if(getPlayerMana() <= getAbility().getMinStamina() *-1 && !stats.useTemperature()) {
+                    player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f,1f);
+                    player.sendMessage(ChatColor.RED + "Your stamina is too high to use this ability!");
+                    GameCoreMain.getInstance().sendActionBar(player, "&c&lSTAMINA TOO HIGH");
+                    return false;
+                }
+
+                else if (getPlayerTemp() > getAbility().getMinStamina() * -1) {
+                    player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f,1f);
+                    player.sendMessage(ChatColor.RED + "Your temperature is too high to use this ability!");
+                    GameCoreMain.getInstance().sendActionBar(player, "&c&lTEMP TOO HIGH");
+                    return false;
+                }
+
+            }
+            // Regular Min Stamina check.
+            else {
+                if (getPlayerMana() < getAbility().getMinStamina() && !stats.useTemperature()) {
+                    player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f,1f);
+                    player.sendMessage(ChatColor.RED + "Your stamina is too low to use this ability!");
+                    GameCoreMain.getInstance().sendActionBar(player, "&c&lSTAMINA TOO LOW");
+                    return false;
+                }
+
+                else if (getPlayerTemp() < getAbility().getMinStamina()) {
+                    player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f,1f);
+                    player.sendMessage(ChatColor.RED + "Your temperature is too low to use this ability!");
+                    GameCoreMain.getInstance().sendActionBar(player, "&c&lTEMP TOO LOW");
+                    return false;
+                }
+            }
+
+
         }
 
         if (this.hasCooldown()) {
@@ -231,20 +293,6 @@ public abstract class Ability implements Listener {
                 return false;
             }
         }
-
-        if (stats.useTemperature() && stats.getTemp() + this.getAbility().getCost() < 0) {
-            stats.setTemp(this.getAbility().getCost() + stats.getTemp());
-            FrostbiteEvent frost = new FrostbiteEvent(player);
-            Bukkit.getPluginManager().callEvent(frost);
-            return false;
-        }
-        if (stats.useTemperature() && this.getAbility().getCost() + stats.getTemp() > stats.getMaxTemp()) {
-            stats.setTemp(this.getAbility().getCost() + stats.getTemp());
-            OverheatEvent heat = new OverheatEvent(player);
-            Bukkit.getPluginManager().callEvent(heat);
-            return false;
-        }
-
 
         if (this.getAbility().hasSpecialCase()) {
             try {
@@ -263,6 +311,20 @@ public abstract class Ability implements Listener {
             }
         }
 
+        if (stats.useTemperature() && stats.getTemp() + this.getAbility().getCost() < 0) {
+            stats.setTemp(this.getAbility().getCost() + stats.getTemp());
+            FrostbiteEvent frost = new FrostbiteEvent(player);
+            Bukkit.getPluginManager().callEvent(frost);
+            return false;
+        }
+        if (stats.useTemperature() && this.getAbility().getCost() + stats.getTemp() > stats.getMaxTemp()) {
+            stats.setTemp(this.getAbility().getCost() + stats.getTemp());
+            OverheatEvent heat = new OverheatEvent(player);
+            Bukkit.getPluginManager().callEvent(heat);
+            return false;
+        }
+
+
         if (this.hasManaCost()) {
             arena.getQuirkBattleGame().getStats(player).setMana(mana - this.getAbility().getCost());
             GameCoreMain.getInstance().sendActionBar(player, "&c" + health + "❤   " + "&3-" + this.getAbility().getCost() + " Stamina (" + this.getAbility().getDisplay() + "&3)   " + mana + "/" + intelligence + "⸎ Stamina");
@@ -276,12 +338,19 @@ public abstract class Ability implements Listener {
     }
 
 
+    private void setCooldownSeconds(int seconds) {
+        this.cooldownSeconds = seconds;
+    }
+
+    private int getCooldownSeconds() {return cooldownSeconds;}
+
     public void doAbilityCooldown() {
         Player player = Bukkit.getPlayer(uuid);
         ItemBuilder stack = new ItemBuilder(Material.SULPHUR);
         stack.setDisplayName(ChatColor.GRAY + ChatColor.stripColor(ability.getDisplay()) + " (On Cooldown)");
         stack.setLore(doLore());
-        player.getInventory().setItem(slot, stack.build());
+        if(isActive()) player.getInventory().setItem(slot, stack.build());
+        cooldownSeconds = 1;
         if (shouldScheduleTask()) {
             float time = (((float) this.ability.getCooldown() / 1000) * 20);
             new BukkitRunnable() {
@@ -290,6 +359,7 @@ public abstract class Ability implements Listener {
                     if (arena.getState() != GameState.LIVE) return;
                     if (!arena.getQuirkBattleGame().getAlivePlayers().contains(player.getUniqueId())) return;
                     if (!isActive()) return;
+                    cooldownSeconds = 0;
                     player.getInventory().setItem(slot, getItem());
                 }
             }.runTaskLater(QuirkBattlesPlugin.getInstance(), (long) time);
@@ -310,13 +380,16 @@ public abstract class Ability implements Listener {
                 }
                 if (!isActive()) {
                     seconds--;
+                    if(seconds >=0) cooldownSeconds = seconds;
                     return;
                 }
                 if (seconds <= 0) {
+                    cooldownSeconds = 0;
                     player.getInventory().setItem(slot, getItem());
                     cancel();
                     return;
                 }
+                cooldownSeconds = seconds;
                 player.getInventory().setItem(slot, stack.setAmount(seconds).build());
                 seconds--;
             }
@@ -364,6 +437,7 @@ public abstract class Ability implements Listener {
         if (!isActive()) return;
         //TODO Return if player's ability settings are not set to HOTKEY.
         event.setCancelled(true);
+        if (player.getInventory().getHeldItemSlot() != 0) player.getInventory().setHeldItemSlot(0);
         if (event.getNewSlot() == this.slot) executeAbility(player);
     }
 
@@ -375,7 +449,14 @@ public abstract class Ability implements Listener {
     public void setActive(boolean active) {
         this.active = active;
         if (isActive()) {
-            Bukkit.getPlayer(uuid).getInventory().setItem(this.slot, getItem());
+            if (getCooldownSeconds() != 0) {
+                ItemBuilder stack = new ItemBuilder(Material.SULPHUR);
+                stack.setDisplayName(ChatColor.GRAY + ChatColor.stripColor(ability.getDisplay()) + " (On Cooldown)");
+                stack.setLore(doLore());
+                stack.setAmount(getCooldownSeconds());
+                Bukkit.getPlayer(uuid).getInventory().setItem(this.slot, stack.build());
+            }
+            else Bukkit.getPlayer(uuid).getInventory().setItem(this.slot, getItem());
         }
     }
 
@@ -383,8 +464,25 @@ public abstract class Ability implements Listener {
         return active;
     }
 
+    public void erase() {
+        setActive(false);
+        Bukkit.getPlayer(uuid).getInventory().setItem(this.slot, getErasedItem());
+    }
+
     public void spawnRGBParticles(Location loc, float red, float green, float blue, boolean sendToSelf) {
         PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(EnumParticle.REDSTONE, true, (float) loc.getX(), (float) loc.getY(), (float) loc.getZ(), red / 255, green / 255, blue / 255, (float) 1, 0);
+
+        if (sendToSelf) arena.sendPacket(packet);
+        else {
+            for (UUID uuid : arena.getPlayers()) {
+                if (uuid == this.uuid) continue;
+                GameCoreMain.getInstance().sendPacket(Bukkit.getPlayer(uuid), packet);
+            }
+        }
+    }
+
+    public void spawnParticle(Location loc, EnumParticle particle, boolean sendToSelf) {
+        PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(particle, true, (float) loc.getX(), (float) loc.getY(), (float) loc.getZ(), 0F, 0F,0F, 0F, 10, 0);
 
         if (sendToSelf) arena.sendPacket(packet);
         else {

@@ -41,8 +41,10 @@ public class UnbreakableAbility extends Ability implements SpecialCase {
         arena.playSound(Sound.WITHER_SPAWN);
 
         if (!arena.getType().isTeamsMode()) {
-            arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.GREEN + " is now " + HerobrinePVPCore.translateString("&c&lUNBREAKABLE&r&a!"));
-        } else {
+            arena.sendMessage(HerobrinePVPCore.getRankColor(player) + player.getName() + ChatColor.GREEN + " is now " + HerobrinePVPCore.translateString("&c&lUNBREAKABLE&r&a!"));
+        }
+
+        else {
             arena.sendMessage(arena.getTeam(player).getColor() + player.getName() + ChatColor.GREEN + " is now " + HerobrinePVPCore.translateString("&c&lUNBREAKABLE&r&a!"));
         }
 
@@ -62,11 +64,20 @@ public class UnbreakableAbility extends Ability implements SpecialCase {
         hardening.setUnbreakable(false);
         hardening.setSharpClaw(false);
         arena.getQuirkBattleGame().getStats(player).setDefense(arena.getQuirkBattleGame().getStats(player).getDefense() - ability.getDefenseBoost());
-        player.playSound(player.getLocation(), Sound.FIRE, 1f, 1f);
+        player.playSound(player.getLocation(), Sound.FIZZ, 1f, 1f);
         if (arena.getType().equals(GameType.ONE_V_ONE))
             arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.RED + " is no longer " + HerobrinePVPCore.translateString("&c&lUNBREAKABLE&r&c."));
         else
             arena.sendMessage(arena.getTeam(player).getColor() + player.getName() + ChatColor.RED + " is no longer " + HerobrinePVPCore.translateString("&c&lUNBREAKABLE&r&c."));
+    }
+
+    public void stopUnbreakableNoCooldown() {
+        hardening.setUnbreakable(false);
+        hardening.setSharpClaw(false);
+        arena.getQuirkBattleGame().getStats(player).setDefense(arena.getQuirkBattleGame().getStats(player).getDefense() - ability.getDefenseBoost());
+        player.playSound(player.getLocation(), Sound.FIZZ, 1f, 1f);
+        if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.RED + " is no longer " + HerobrinePVPCore.translateString("&c&lUNBREAKABLE&r&c."));
+        else arena.sendMessage(arena.getTeam(player).getColor() + player.getName() + ChatColor.RED + " is no longer " + HerobrinePVPCore.translateString("&c&lUNBREAKABLE&r&c."));
     }
 
     public void startFX(float radius) {
@@ -80,17 +91,22 @@ public class UnbreakableAbility extends Ability implements SpecialCase {
                     cancel();
                     return;
                 }
+
                 if (!hardening.isUnbreakable()) {
                     cancel();
                     return;
                 }
+
                 if (!arena.getQuirkBattleGame().getAlivePlayers().contains(player.getUniqueId())) {
                     cancel();
                     return;
                 }
+
                 if (addToY > 3) addToY = 0;
+
                 for (UUID uuid : arena.getPlayers()) {
                     if (uuid == quirk.getUUID()) continue;
+
                     Player showFor = Bukkit.getPlayer(uuid);
                     for (double t = 0; t < 1000; t += 0.5) {
                         float x = radius * (float) Math.sin(t);

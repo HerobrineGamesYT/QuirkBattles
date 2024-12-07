@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 public class ExplosionDashAbility extends Ability {
-    private Explosion exp;
+    private final Explosion exp;
 
     public ExplosionDashAbility(Abilities ability, Class quirk, int id, int slot) {
         super(ability, quirk, id, slot);

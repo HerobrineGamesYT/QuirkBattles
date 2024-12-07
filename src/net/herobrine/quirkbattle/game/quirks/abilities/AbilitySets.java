@@ -1,15 +1,16 @@
 package net.herobrine.quirkbattle.game.quirks.abilities;
 
 public enum AbilitySets {
-    ICE(new Abilities[]{Abilities.ICE_ABILITY_TEST, Abilities.ICE_WALL}, true, -1),
-    FIRE(new Abilities[]{Abilities.FIRE_ABILITY_TEST}, true, 1),
+    ICE(new Abilities[]{Abilities.ICE_WALL, Abilities.ICE_SHARD, Abilities.GLACIER}, true, -1),
+    FIRE(new Abilities[]{Abilities.FIRE_WALL, Abilities.FLASHFIRE_FIST, Abilities.FLAME_OVERDRIVE}, true, 1),
     ONE_FOR_ALL(new Abilities[]{Abilities.DETROIT_SMASH, Abilities.SHOOT_STYLE, Abilities.AIR_PROPULSION}, false, 0),
     EXPLOSION(new Abilities[]{Abilities.EXPLOSION_DASH, Abilities.EXPLOSION_PUNCH, Abilities.HOWITZER_IMPACT}, false, 0),
     HARDENING(new Abilities[]{Abilities.SHARP_CLAW, Abilities.STONE_CHARGE, Abilities.UNBREAKABLE}, false, 0),
     ALL_FOR_ONE(new Abilities[]{}, false, 0),
     ZEROGRAVITY(new Abilities[]{}, false, 0),
-    ERASURE(new Abilities[]{}, false, 0),
+    ERASURE(new Abilities[]{Abilities.CAPTURE, Abilities.SHARPENED_KNIFE, Abilities.EYEDROPS}, false, 0),
     PERMEATION(new Abilities[]{}, false, 0),
+    ENGINE(new Abilities[]{}, false, 0),
     OFA_SWITCH_TEST(new Abilities[]{Abilities.AIR_PROPULSION, Abilities.DETROIT_SMASH, Abilities.SHOOT_STYLE}, false, 0);
 
 

@@ -68,6 +68,15 @@ public class StoneChargeAbility extends Ability implements SpecialCase {
     }
 
 
+    public void stopStoneChargeNoCooldown() {
+        isCharging = false;
+        player.setWalkSpeed(.2F);
+        arena.getQuirkBattleGame().getStats(player).setDefense(arena.getQuirkBattleGame().getStats(player).getDefense() - ability.getDefenseBoost());
+    }
+
+    public boolean isCharging() {return isCharging;}
+
+
     public void doStoneChargeCollisionChecks(Player player) {
         new BukkitRunnable() {
             ArrayList<UUID> hasHit = new ArrayList<>();
@@ -75,6 +84,11 @@ public class StoneChargeAbility extends Ability implements SpecialCase {
             @Override
             public void run() {
                 if (!Manager.isPlaying(player) || !Manager.getArena(player).getState().equals(GameState.LIVE)) {
+                    cancel();
+                    hasHit.clear();
+                    return;
+                }
+                if (!isActive()) {
                     cancel();
                     hasHit.clear();
                     return;

@@ -50,7 +50,7 @@ public class ShootStyleAbility extends Ability {
     public void doShootStyleCollisionChecks(Player player, int power) {
         new BukkitRunnable() {
             int cooldown = 15;
-            ArrayList<UUID> hasHit = new ArrayList<>();
+            final ArrayList<UUID> hasHit = new ArrayList<>();
 
             @Override
             public void run() {
@@ -58,7 +58,11 @@ public class ShootStyleAbility extends Ability {
                     cancel();
                     hasHit.clear();
                 }
-
+                 if (!isActive()) {
+                     cancel();
+                     hasHit.clear();
+                     return;
+                 }
                 if (cooldown == 0) {
                     cancel();
                     hasHit.clear();

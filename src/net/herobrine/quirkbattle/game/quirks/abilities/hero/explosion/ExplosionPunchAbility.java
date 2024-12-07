@@ -10,7 +10,7 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 public class ExplosionPunchAbility extends Ability implements SpecialCase {
-    private Explosion exp;
+    private final Explosion exp;
 
     public ExplosionPunchAbility(Abilities ability, Class quirk, int id, int slot) {
         super(ability, quirk, id, slot);

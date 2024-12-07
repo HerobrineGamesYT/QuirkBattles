@@ -72,6 +72,13 @@ public class DetroitSmashAbility extends Ability {
                     cancel();
                     hasHit.clear();
                 }
+
+                if (!isActive()) {
+                    cancel();
+                    hasHit.clear();
+                    return;
+                }
+
                 if (player.isOnGround()) {
                     cancel();
                     Location loc = player.getLocation();

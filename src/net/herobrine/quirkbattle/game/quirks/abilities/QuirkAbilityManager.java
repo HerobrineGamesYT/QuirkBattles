@@ -1,6 +1,9 @@
 package net.herobrine.quirkbattle.game.quirks.abilities;
 
 import net.herobrine.gamecore.Class;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.erasure.CaptureAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.erasure.EyeDropsAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.erasure.SharpenedKnifeAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.explosion.ExplosionDashAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.explosion.ExplosionPunchAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.explosion.HowitzerImpactAbility;
@@ -8,7 +11,12 @@ import net.herobrine.quirkbattle.game.quirks.abilities.hero.hardening.SharpClawA
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.hardening.StoneChargeAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.hardening.UnbreakableAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.fire.FireAbilityTest;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.fire.FireWallAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.fire.FlashfireFistAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.fire.OverdriveAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.ice.GlacierAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.ice.IceAbilityTest;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.ice.IceShardAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.ice.IceWallAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.AirPropulsionAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.DetroitSmashAbility;
@@ -108,6 +116,46 @@ public class QuirkAbilityManager {
                 abilities.add(wall);
                 Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, wall.getItem());
                 return wall;
+            case FIRE_WALL:
+                FireWallAbility fireWall = new FireWallAbility(ability, quirk, id, slot);
+                abilities.add(fireWall);
+                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, fireWall.getItem());
+                return fireWall;
+            case ICE_SHARD:
+                IceShardAbility iceShard = new IceShardAbility(ability, quirk, id, slot);
+                abilities.add(iceShard);
+                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, iceShard.getItem());
+                return iceShard;
+            case FLASHFIRE_FIST:
+                FlashfireFistAbility fist = new FlashfireFistAbility(ability, quirk, id, slot);
+                abilities.add(fist);
+                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, fist.getItem());
+                return fist;
+            case GLACIER:
+                GlacierAbility glacier = new GlacierAbility(ability, quirk, id, slot);
+                abilities.add(glacier);
+                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, glacier.getItem());
+                return glacier;
+            case FLAME_OVERDRIVE:
+                OverdriveAbility overdriveAbility = new OverdriveAbility(ability, quirk, id, slot);
+                abilities.add(overdriveAbility);
+                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, overdriveAbility.getItem());
+                return overdriveAbility;
+            case CAPTURE:
+                CaptureAbility capture = new CaptureAbility(ability, quirk, id, slot);
+                abilities.add(capture);
+                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, capture.getItem());
+                return capture;
+            case SHARPENED_KNIFE:
+                SharpenedKnifeAbility knife = new SharpenedKnifeAbility(ability, quirk, id, slot);
+                abilities.add(knife);
+                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, knife.getItem());
+                return knife;
+            case EYEDROPS:
+                EyeDropsAbility drops = new EyeDropsAbility(ability, quirk, id, slot);
+                abilities.add(drops);
+                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, drops.getItem());
+                return drops;
             default:
                 return null;
         }

@@ -10,10 +10,13 @@ import net.herobrine.gamecore.Manager;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.event.FrostbiteEvent;
 import net.herobrine.quirkbattle.event.OverheatEvent;
+import net.herobrine.quirkbattle.event.QuirkErasureEvent;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.abilities.AbilitySets;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.fire.OverdriveAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.ice.GlacierAbility;
 import net.herobrine.quirkbattle.game.stats.PlayerStats;
 import net.herobrine.quirkbattle.util.Quirk;
 import net.herobrine.quirkbattle.util.Switchable;
@@ -21,6 +24,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -36,16 +40,26 @@ public class IcyHot extends Class implements Quirk, Switchable {
     private final List<Ability> abilities;
     private final Arena arena;
     private PlayerStats stats;
+
+    private final Player player;
     private boolean isSwitcherActive = false;
     private AbilitySets currentSet;
     private AbilitySets[] availableSets;
     private boolean isStunned = false;
+    private boolean isBeingErased = false;
+
+    private boolean fireFistActive = false;
+
+    private boolean isGlacierOn = false;
+
+    private boolean isOverdriveOn = false;
 
     public IcyHot(UUID uuid) {
         super(uuid, ClassTypes.ICYHOT);
         arena = Manager.getArena(Bukkit.getPlayer(uuid));
         this.abilities = new ArrayList<>();
         this.availableSets = new AbilitySets[]{AbilitySets.ICE, AbilitySets.FIRE};
+        this.player = Bukkit.getPlayer(uuid);
     }
 
 
@@ -71,14 +85,55 @@ public class IcyHot extends Class implements Quirk, Switchable {
     }
 
     @Override
+    public boolean isBeingErased() {
+        return isBeingErased;
+    }
+
+    @Override
     public boolean shouldUseAbilityAttack() {
-        return false;
+        return fireFistActive && currentSet == AbilitySets.FIRE;
     }
 
     @Override
     public void useAbilityAttack(Player target) {
+        setFireFist(false);
+        arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.FLASHFIRE_FIST).setCooldown(System.currentTimeMillis());
+        arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.FLASHFIRE_FIST).doAbilityCooldown();
+        new BukkitRunnable() {
+            int i = 0;
+            @Override
+            public void run() {
+                if (arena.getState().equals(GameState.LIVE) || !arena.getQuirkBattleGame().getAlivePlayers().contains(target.getUniqueId())) {
+                    cancel();
+                    return;
+                }
 
+                if (i > 2) {
+                    cancel();
+                    getAbilities().get(0).spawnRGBParticles(target.getEyeLocation().add(0, 1.5, 0),  179, 67, 27, false);
+                    EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, Abilities.FLASHFIRE_FIST.getDamage());
+                    arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.FLASHFIRE_FIST);
+                    arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
+                    target.playSound(target.getLocation(), Sound.FIZZ, 1f, 1f);
+                    target.damage(0);
+                    target.setLastDamageCause(dmg);
+                    Bukkit.getPluginManager().callEvent(dmg);
+                    return;
+                }
+
+            }
+        }.runTaskTimer(QuirkBattlesPlugin.getInstance(), 0L, 10L);
     }
+
+    public void setFireFist(boolean fireFist) {this.fireFistActive = fireFist;}
+    public boolean isFireFistActive() {return fireFistActive;}
+
+    public boolean isGlacierOn() {return isGlacierOn;}
+    public boolean isOverdriveOn() {return isOverdriveOn;}
+
+    public void setGlacierOn(boolean glacier) {this.isGlacierOn = glacier;}
+
+    public void setOverdriveOn(boolean overdrive) {this.isOverdriveOn = overdrive;}
 
     @Override
     public void registerAbilities(AbilitySets set) {
@@ -113,6 +168,16 @@ public class IcyHot extends Class implements Quirk, Switchable {
             Bukkit.getPlayer(uuid).sendMessage(ChatColor.RED + "You can't switch sets while stunned!");
             return;
         }
+        if (set == AbilitySets.ICE && isOverdriveOn) {
+            OverdriveAbility overdrive = (OverdriveAbility) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.FLAME_OVERDRIVE);
+            overdrive.stopOverdrive();
+        }
+
+        if (set == AbilitySets.FIRE && isGlacierOn) {
+            GlacierAbility glacier = (GlacierAbility) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.GLACIER);
+            glacier.stopGlacier();
+        }
+
         if (secondaryAbilities.isEmpty()) {
             for (Ability ability : abilities) {
                 secondaryAbilities.add(ability);
@@ -155,6 +220,7 @@ public class IcyHot extends Class implements Quirk, Switchable {
                 }
                 int tempChange = currentSet.getTempPerSecond();
                 if (isStunned) return;
+                if (isBeingErased) return;
                 if (stats.useTemperature() && stats.getTemp() + tempChange < 0) {
                     stats.setTemp(tempChange + stats.getTemp());
                     FrostbiteEvent frost = new FrostbiteEvent(Bukkit.getPlayer(uuid));
@@ -175,6 +241,10 @@ public class IcyHot extends Class implements Quirk, Switchable {
     public void onFrost(FrostbiteEvent event) {
         if (event.getQuirk() != this) return;
         isStunned = true;
+        if (isGlacierOn) {
+            GlacierAbility glacier = (GlacierAbility) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.GLACIER);
+            glacier.stopGlacier();
+        }
         int damage = 3;
         int warmPerTick = 2;
         for (Ability ability : abilities) {
@@ -197,6 +267,7 @@ public class IcyHot extends Class implements Quirk, Switchable {
                     event.getPlayer().sendMessage(HerobrinePVPCore.translateString("&e&lPHEW! &fYou've warmed up now. Be careful!"));
                     return;
                 }
+                getAbilities().get(0).spawnRGBParticles(event.getPlayer().getEyeLocation().add(0,1.5,0),22, 221, 224,false);
                 if (stats.getTemp() + 1 == stats.getBaseTemp()) stats.setTemp(stats.getBaseTemp());
                 else stats.setTemp(stats.getTemp() + warmPerTick);
                 EntityDamageEvent dmg = new EntityDamageEvent(event.getPlayer(), EntityDamageEvent.DamageCause.CUSTOM, damage);
@@ -211,6 +282,12 @@ public class IcyHot extends Class implements Quirk, Switchable {
     public void onOverHeat(OverheatEvent event) {
         if (event.getQuirk() != this) return;
         isStunned = true;
+
+        if (isOverdriveOn) {
+            OverdriveAbility overdrive = (OverdriveAbility) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.FLAME_OVERDRIVE);
+            overdrive.stopOverdrive();
+        }
+
         int damage = 3;
         int coolPerTick = -2;
         for (Ability ability : abilities) {
@@ -233,6 +310,7 @@ public class IcyHot extends Class implements Quirk, Switchable {
                     }
                     return;
                 }
+                getAbilities().get(0).spawnRGBParticles(event.getPlayer().getEyeLocation().add(0, 1.5, 0),  179, 67, 27, false);
                 if (stats.getTemp() - 1 == stats.getBaseTemp()) stats.setTemp(stats.getBaseTemp());
                 else stats.setTemp(stats.getTemp() + coolPerTick);
                 EntityDamageEvent dmg = new EntityDamageEvent(event.getPlayer(), EntityDamageEvent.DamageCause.CUSTOM, damage);
@@ -253,5 +331,20 @@ public class IcyHot extends Class implements Quirk, Switchable {
         if (e.getTo().getX() != e.getFrom().getX() || e.getTo().getZ() != e.getFrom().getZ()) {
             e.setTo(new Location(e.getFrom().getWorld(), e.getFrom().getX(), e.getTo().getY(), e.getFrom().getZ(), e.getTo().getYaw(), e.getTo().getPitch()));
         }
+    }
+
+    @EventHandler
+    public void onErase(QuirkErasureEvent e) {
+        if (e.getQuirk() != this) return;
+        if (e.isErasing()) {
+            isBeingErased = true;
+            fireFistActive = false;
+            OverdriveAbility ovrd = (OverdriveAbility) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.FLAME_OVERDRIVE);
+            GlacierAbility glacier = (GlacierAbility) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.GLACIER);
+            if (isOverdriveOn) ovrd.stopOverdriveNoCooldown();
+            if (isGlacierOn) glacier.stopGlacierNoCooldown();
+
+        }
+        else isBeingErased = false;
     }
 }

@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 public class HowitzerImpactAbility extends Ability {
-    private Explosion exp;
+    private final Explosion exp;
 
     public HowitzerImpactAbility(Abilities ability, Class quirk, int id, int slot) {
         super(ability, quirk, id, slot);
@@ -53,6 +53,10 @@ public class HowitzerImpactAbility extends Ability {
                     return;
                 }
 
+                if(!isActive()) {
+                    return;
+                }
+
                 if (player.isOnGround() && ticks > 10) {
                     cancel();
                     player.getLocation().getWorld().createExplosion(player.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ(), (float) ability.getRadius(), false, false);
@@ -80,6 +84,12 @@ public class HowitzerImpactAbility extends Ability {
                     cancel();
                     hasHit.clear();
                 }
+                if (!isActive()) {
+                    cancel();
+                    hasHit.clear();
+                    return;
+                }
+
                 if (cooldown == 0) {
                     cancel();
                     hasHit.clear();

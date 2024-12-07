@@ -728,7 +728,7 @@ public class QuirkBattlesGame {
                     if (arena.getSpectators().contains(uuid)) continue;
                     if (!region.containsLocation(player.getLocation()) || isOutsideOfBorder(player)) {
                         if (collisionTicks % 10 != 0) continue;
-                        EntityDamageEvent event = new EntityDamageEvent(player, EntityDamageEvent.DamageCause.CUSTOM, 50);
+                        EntityDamageEvent event = new EntityDamageEvent(player, EntityDamageEvent.DamageCause.CUSTOM, 30);
                         customDeathCause.put(player.getUniqueId(), CustomDeathCause.OUTSIDE_MAP);
                         player.sendMessage(ChatColor.RED + "Get back in the playing area!");
                         player.setLastDamageCause(event);

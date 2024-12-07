@@ -8,6 +8,7 @@ import net.herobrine.gamecore.GameState;
 import net.herobrine.gamecore.ItemBuilder;
 import net.herobrine.gamecore.Manager;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
+import net.herobrine.quirkbattle.event.QuirkErasureEvent;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
@@ -22,6 +23,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -37,6 +39,8 @@ public class Explosion extends Class implements Quirk {
     private final Player player;
 
     private boolean explosivePunch = false;
+
+    private boolean isBeingErased = false;
 
     public Explosion(UUID uuid) {
         super(uuid, ClassTypes.EXPLOSION);
@@ -190,6 +194,11 @@ public class Explosion extends Class implements Quirk {
     }
 
     @Override
+    public boolean isBeingErased() {
+        return isBeingErased;
+    }
+
+    @Override
     public boolean shouldUseAbilityAttack() {
         return isExplosivePunch();
     }
@@ -201,6 +210,18 @@ public class Explosion extends Class implements Quirk {
 
     @Override
     public void registerAbilities(AbilitySets set) {
+
+    }
+
+
+    @EventHandler
+    public void onErase(QuirkErasureEvent e) {
+        if (e.getQuirk() != this) return;
+        if(e.isErasing()) {
+            setExplosivePunch(false);
+            isBeingErased = true;
+        }
+        else isBeingErased = false;
 
     }
 }

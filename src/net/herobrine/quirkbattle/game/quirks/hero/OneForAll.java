@@ -9,6 +9,7 @@ import net.herobrine.gamecore.GameState;
 import net.herobrine.gamecore.GameType;
 import net.herobrine.gamecore.ItemBuilder;
 import net.herobrine.gamecore.Manager;
+import net.herobrine.quirkbattle.event.QuirkErasureEvent;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
@@ -37,6 +38,10 @@ public class OneForAll extends Class implements Quirk, Switchable {
     private PlayerStats stats;
     private final Arena arena;
     private long lastStaminaCharge = 0;
+
+    private boolean canPowerUp = true;
+
+    private boolean isBeingErased = false;
     private final List<Ability> abilities;
 
     private boolean isSwitcherActive = false;
@@ -73,16 +78,28 @@ public class OneForAll extends Class implements Quirk, Switchable {
             i++;
         }
 
-        //if (!isSwitcherActive) {
-        //    arena.getQuirkBattleGame().getAbilityManager().registerAbility(Abilities.OFA_ABILITY_SWITCH_TEST, this, i);
-        //    isSwitcherActive = true;
-        //}
+        if (!isSwitcherActive && arena.getType().equals(GameType.HEROES_VS_VILLAINS)) {
+            arena.getQuirkBattleGame().getAbilityManager().registerAbility(Abilities.OFA_ABILITY_SWITCH_TEST, this, i);
+            isSwitcherActive = true;
+        }
     }
 
     public void resetPower() {
         Player player = Bukkit.getPlayer(uuid);
         if (Manager.getArena(player).getType() != GameType.HEROES_VS_VILLAINS)
             rollForDamage((double) stats.getMana() / 100);
+        stats.setMana(0);
+        player.setWalkSpeed(.2F);
+        player.setLevel(stats.getMana());
+        player.setExp((float) stats.getMana() / (float) stats.getIntelligence());
+        ItemBuilder defaultHeldItem = new ItemBuilder(Material.STICK);
+        defaultHeldItem.setDisplayName(ChatColor.GREEN + "Hold right click to charge power!");
+        defaultHeldItem.addItemFlag(ItemFlag.HIDE_ENCHANTS);
+        player.getInventory().setItem(0, defaultHeldItem.build());
+
+    }
+    public void resetPowerNoRoll() {
+        Player player = Bukkit.getPlayer(uuid);
         stats.setMana(0);
         player.setWalkSpeed(.2F);
         player.setLevel(stats.getMana());
@@ -122,7 +139,7 @@ public class OneForAll extends Class implements Quirk, Switchable {
         if (Manager.getArena(e.getPlayer()).getState() != GameState.LIVE) return;
         Player player = e.getPlayer();
         boolean shouldChargePower = e.getAction().equals(Action.RIGHT_CLICK_AIR) || e.getAction().equals(Action.RIGHT_CLICK_BLOCK);
-        if (shouldChargePower && System.currentTimeMillis() - lastStaminaCharge >= 100) {
+        if (shouldChargePower && System.currentTimeMillis() - lastStaminaCharge >= 100 && canPowerUp) {
             lastStaminaCharge = System.currentTimeMillis();
             if (stats.getMana() < 100) {
                 stats.setMana(stats.getMana() + 1);
@@ -147,6 +164,9 @@ public class OneForAll extends Class implements Quirk, Switchable {
     public List<Ability> getAbilities() {
         return abilities;
     }
+
+    @Override
+    public boolean isBeingErased() {return isBeingErased;}
 
     @Override
     public boolean shouldUseAbilityAttack() {
@@ -196,5 +216,19 @@ public class OneForAll extends Class implements Quirk, Switchable {
     @Override
     public AbilitySets[] getAvailableSets() {
         return availableSets;
+    }
+
+    @EventHandler
+    public void onErase(QuirkErasureEvent e) {
+        if (e.getQuirk() != this) return;
+        if (e.isErasing()) {
+            resetPowerNoRoll();
+            canPowerUp = false;
+            isBeingErased = true;
+        }
+        if (!e.isErasing()) {
+            canPowerUp = true;
+            isBeingErased = false;
+        }
     }
 }
