@@ -236,8 +236,9 @@ public abstract class Ability implements Listener {
         int health = arena.getQuirkBattleGame().getStats(player).getHealth();
         int intelligence = arena.getQuirkBattleGame().getStats(player).getIntelligence();
         int mana = arena.getQuirkBattleGame().getStats(player).getMana();
-
-
+        player.sendMessage(ChatColor.GREEN + "Your Quirk: " + getQuirk().getClassType());
+        player.sendMessage(ChatColor.GREEN + "This ability instance is for: " + ability);
+        player.sendMessage(ChatColor.GREEN + "Use temp: " + stats.useTemperature());
         //Cost is checked before min stamina that the message is not triggered accidentally!
         if (this.hasManaCost() && getPlayerMana() < this.getAbility().getCost()) {
             player.sendMessage(ChatColor.RED + "Not enough stamina!");
@@ -245,7 +246,6 @@ public abstract class Ability implements Listener {
             GameCoreMain.getInstance().sendActionBar(player, "&c&lNOT ENOUGH STAMINA");
             return false;
         }
-
 
         if (this.getAbility().getMinStamina() != 0) {
             // If min stamina is set to a negative number in Abilities enum, game will check if player's stamina is LESS THAN OR EQUAL TO that number.
@@ -257,7 +257,7 @@ public abstract class Ability implements Listener {
                     return false;
                 }
 
-                else if (getPlayerTemp() > getAbility().getMinStamina() * -1) {
+                 if (getPlayerTemp() > getAbility().getMinStamina() * -1 && stats.useTemperature()) {
                     player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f,1f);
                     player.sendMessage(ChatColor.RED + "Your temperature is too high to use this ability!");
                     GameCoreMain.getInstance().sendActionBar(player, "&c&lTEMP TOO HIGH");
@@ -274,15 +274,13 @@ public abstract class Ability implements Listener {
                     return false;
                 }
 
-                else if (getPlayerTemp() < getAbility().getMinStamina()) {
+                if (getPlayerTemp() < getAbility().getMinStamina() && stats.useTemperature()) {
                     player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f,1f);
                     player.sendMessage(ChatColor.RED + "Your temperature is too low to use this ability!");
                     GameCoreMain.getInstance().sendActionBar(player, "&c&lTEMP TOO LOW");
                     return false;
                 }
             }
-
-
         }
 
         if (this.hasCooldown()) {

@@ -23,6 +23,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -99,31 +100,36 @@ public class OverdriveAbility extends Ability implements SpecialCase {
 
     }
 
-    public void doBurningDamage(Player target) {
+    public void doBurningDamage(final Player target) {
         new BukkitRunnable() {
-            int i = 0;
-            @Override
-            public void run() {
-                if (arena.getState().equals(GameState.LIVE) || !arena.getQuirkBattleGame().getAlivePlayers().contains(target.getUniqueId())) {
-                    cancel();
-                    return;
-                }
+                    int i = 0;
+                    @Override
+                    public void run() {
+                        if (arena.getState().equals(GameState.LIVE) || !arena.getQuirkBattleGame().getAlivePlayers().contains(target.getUniqueId())) {
+                            cancel();
+                            return;
+                        }
 
-                if (i > 2) {
-                    cancel();
-                    return;
-                }
-                EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, ability.getDamage());
-                arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.OVERDRIVE);
-                arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
-                target.playSound(target.getLocation(), Sound.FIZZ, 1f, 1f);
-                target.damage(0);
-                target.setLastDamageCause(dmg);
-                Bukkit.getPluginManager().callEvent(dmg);
-                spawnRGBParticles(target.getPlayer().getEyeLocation().add(0, 1.5, 0),  179, 67, 27, false);
+                        if (i > 2) {
+                            cancel();
+                            return;
+                        }
+                        player.sendMessage(ChatColor.GREEN + "target is " + target.getName());
+                        EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, ability.getDamage());
+                        arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.OVERDRIVE);
+                        arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
+                        target.playSound(target.getLocation(), Sound.FIZZ, 1f, 1f);
+                        target.damage(0);
+                        target.setLastDamageCause(dmg);
+                        Bukkit.getPluginManager().callEvent(dmg);
+                spawnRGBParticles(target.getPlayer().getEyeLocation().add(0, 1.5, 0),  179, 67, 27, true);
                 i++;
             }
         }.runTaskTimer(QuirkBattlesPlugin.getInstance(), 0L, 10L);
+    }
+
+    public void doDamageTick(Player target) {
+
     }
 
     public void doCollision() {
@@ -160,10 +166,46 @@ public class OverdriveAbility extends Ability implements SpecialCase {
                         if (System.currentTimeMillis() - hasHit.get(target.getUniqueId()) < 2000) continue;
                     }
 
+                    EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, ability.getDamage());
+                    arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.OVERDRIVE);
+                    arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
+                    target.playSound(target.getLocation(), Sound.FIZZ, 1f, 1f);
+                    target.damage(0);
+                    target.setLastDamageCause(dmg);
+                    Bukkit.getPluginManager().callEvent(dmg);
+                    spawnRGBParticles(target.getPlayer().getEyeLocation().add(0, 1.5, 0),  179, 67, 27, true);
+
                     hasHit.put(target.getUniqueId(), System.currentTimeMillis());
                     target.sendMessage(ChatColor.GREEN + "You have been burned by " + player.getName() + "'s" + ability.getDisplay() + "!");
                     player.sendMessage(ChatColor.GREEN + "You have burned " + target.getName() + " with your " + ability.getDisplay() + ChatColor.GREEN + " effect!");
-                    doBurningDamage(target);
+                    //TODO CLEAN UP
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, ability.getDamage());
+                            arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.OVERDRIVE);
+                            arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
+                            target.playSound(target.getLocation(), Sound.FIZZ, 1f, 1f);
+                            target.damage(0);
+                            target.setLastDamageCause(dmg);
+                            Bukkit.getPluginManager().callEvent(dmg);
+                            spawnRGBParticles(target.getPlayer().getEyeLocation().add(0, 1.5, 0),  179, 67, 27, true);
+                        }
+                    }.runTaskLater(QuirkBattlesPlugin.getInstance(), 10L);
+
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, ability.getDamage());
+                            arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.OVERDRIVE);
+                            arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
+                            target.playSound(target.getLocation(), Sound.FIZZ, 1f, 1f);
+                            target.damage(0);
+                            target.setLastDamageCause(dmg);
+                            Bukkit.getPluginManager().callEvent(dmg);
+                            spawnRGBParticles(target.getPlayer().getEyeLocation().add(0, 1.5, 0),  179, 67, 27, true);
+                        }
+                    }.runTaskLater(QuirkBattlesPlugin.getInstance(), 20L);
                 }
             }
         }.runTaskTimer(QuirkBattlesPlugin.getInstance(), 0L, 1L);

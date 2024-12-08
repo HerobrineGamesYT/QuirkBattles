@@ -15,7 +15,7 @@ public class PlayerStats {
     private int intelligence;
     private int strength;
     private int lastRegenMana;
-    private boolean useTemperature;
+    private final boolean useTemperature;
     private int baseTemp = 0;
     private int temp = 0;
     private int maxTemp = 0;

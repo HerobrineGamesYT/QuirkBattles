@@ -17,6 +17,7 @@ import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.abilities.AbilitySets;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.fire.OverdriveAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.ice.GlacierAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.SwitchAbilitySetTest;
 import net.herobrine.quirkbattle.game.stats.PlayerStats;
 import net.herobrine.quirkbattle.util.Quirk;
 import net.herobrine.quirkbattle.util.Switchable;
@@ -99,30 +100,44 @@ public class IcyHot extends Class implements Quirk, Switchable {
         setFireFist(false);
         arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.FLASHFIRE_FIST).setCooldown(System.currentTimeMillis());
         arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.FLASHFIRE_FIST).doAbilityCooldown();
+
+        getAbilities().get(0).spawnRGBParticles(target.getEyeLocation().add(0, 1.5, 0),  179, 67, 27, false);
+        EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, Abilities.FLASHFIRE_FIST.getDamage());
+        arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.FLASHFIRE_FIST);
+        arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
+        target.playSound(target.getLocation(), Sound.FIZZ, 1f, 1f);
+        target.damage(0);
+        target.setLastDamageCause(dmg);
+        Bukkit.getPluginManager().callEvent(dmg);
+
         new BukkitRunnable() {
-            int i = 0;
             @Override
             public void run() {
-                if (arena.getState().equals(GameState.LIVE) || !arena.getQuirkBattleGame().getAlivePlayers().contains(target.getUniqueId())) {
-                    cancel();
-                    return;
-                }
-
-                if (i > 2) {
-                    cancel();
-                    getAbilities().get(0).spawnRGBParticles(target.getEyeLocation().add(0, 1.5, 0),  179, 67, 27, false);
-                    EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, Abilities.FLASHFIRE_FIST.getDamage());
-                    arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.FLASHFIRE_FIST);
-                    arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
-                    target.playSound(target.getLocation(), Sound.FIZZ, 1f, 1f);
-                    target.damage(0);
-                    target.setLastDamageCause(dmg);
-                    Bukkit.getPluginManager().callEvent(dmg);
-                    return;
-                }
-
+                getAbilities().get(0).spawnRGBParticles(target.getEyeLocation().add(0, 1.5, 0),  179, 67, 27, false);
+                EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, Abilities.FLASHFIRE_FIST.getDamage());
+                arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.FLASHFIRE_FIST);
+                arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
+                target.playSound(target.getLocation(), Sound.FIZZ, 1f, 1f);
+                target.damage(0);
+                target.setLastDamageCause(dmg);
+                Bukkit.getPluginManager().callEvent(dmg);
             }
-        }.runTaskTimer(QuirkBattlesPlugin.getInstance(), 0L, 10L);
+        }.runTaskLater(QuirkBattlesPlugin.getInstance(), 10L);
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                getAbilities().get(0).spawnRGBParticles(target.getEyeLocation().add(0, 1.5, 0),  179, 67, 27, false);
+                EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, Abilities.FLASHFIRE_FIST.getDamage());
+                arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.FLASHFIRE_FIST);
+                arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
+                target.playSound(target.getLocation(), Sound.FIZZ, 1f, 1f);
+                target.damage(0);
+                target.setLastDamageCause(dmg);
+                Bukkit.getPluginManager().callEvent(dmg);
+            }
+        }.runTaskLater(QuirkBattlesPlugin.getInstance(), 20L);
+
     }
 
     public void setFireFist(boolean fireFist) {this.fireFistActive = fireFist;}
@@ -339,12 +354,20 @@ public class IcyHot extends Class implements Quirk, Switchable {
         if (e.isErasing()) {
             isBeingErased = true;
             fireFistActive = false;
+            SwitchAbilitySetTest switcher = (SwitchAbilitySetTest) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.OFA_ABILITY_SWITCH_TEST);
+
+            switcher.erase();
+
             OverdriveAbility ovrd = (OverdriveAbility) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.FLAME_OVERDRIVE);
             GlacierAbility glacier = (GlacierAbility) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.GLACIER);
             if (isOverdriveOn) ovrd.stopOverdriveNoCooldown();
             if (isGlacierOn) glacier.stopGlacierNoCooldown();
 
         }
-        else isBeingErased = false;
+        else {
+            isBeingErased = false;
+            SwitchAbilitySetTest switcher = (SwitchAbilitySetTest) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.OFA_ABILITY_SWITCH_TEST);
+            switcher.setActive(true);
+        }
     }
 }

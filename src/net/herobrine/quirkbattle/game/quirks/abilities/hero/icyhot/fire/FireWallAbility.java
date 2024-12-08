@@ -129,8 +129,33 @@ public class FireWallAbility extends Ability {
                 target.damage(0);
                 target.setLastDamageCause(dmg);
                 Bukkit.getPluginManager().callEvent(dmg);
+                spawnRGBParticles(target.getPlayer().getEyeLocation().add(0, 1.5, 0),  179, 67, 27, true);
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, ability.getDamage());
+                        arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.FLAME_WALL);
+                        arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
+                        target.damage(0);
+                        target.setLastDamageCause(dmg);
+                        Bukkit.getPluginManager().callEvent(dmg);
+                        spawnRGBParticles(target.getPlayer().getEyeLocation().add(0, 1.5, 0),  179, 67, 27, true);
+                    }
+                }.runTaskLater(QuirkBattlesPlugin.getInstance(), 10L);
 
-                doBurningDamage(target);
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, ability.getDamage());
+                        arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.FLAME_WALL);
+                        arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
+                        target.damage(0);
+                        target.setLastDamageCause(dmg);
+                        Bukkit.getPluginManager().callEvent(dmg);
+                        spawnRGBParticles(target.getPlayer().getEyeLocation().add(0, 1.5, 0),  179, 67, 27, true);
+                    }
+                }.runTaskLater(QuirkBattlesPlugin.getInstance(), 20L);
+
             }
         }
     }
