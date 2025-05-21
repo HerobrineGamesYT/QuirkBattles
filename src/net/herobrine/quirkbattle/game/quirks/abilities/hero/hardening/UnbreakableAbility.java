@@ -1,7 +1,6 @@
 package net.herobrine.quirkbattle.game.quirks.abilities.hero.hardening;
 
 import net.herobrine.core.HerobrinePVPCore;
-import net.herobrine.gamecore.Class;
 
 import net.herobrine.gamecore.GameState;
 import net.herobrine.gamecore.GameType;
@@ -10,6 +9,7 @@ import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.abilities.SpecialCase;
 import net.herobrine.quirkbattle.game.quirks.hero.Hardening;
+import net.herobrine.quirkbattle.util.Quirk;
 import net.minecraft.server.v1_8_R3.EnumParticle;
 import net.minecraft.server.v1_8_R3.PacketPlayOutWorldParticles;
 import org.bukkit.Bukkit;
@@ -27,7 +27,7 @@ public class UnbreakableAbility extends Ability implements SpecialCase {
     private Hardening hardening;
     private Player player;
 
-    public UnbreakableAbility(Abilities ability, Class quirk, int id, int slot) {
+    public UnbreakableAbility(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
         this.hardening = (Hardening) quirk;
         this.player = Bukkit.getPlayer(uuid);
@@ -105,7 +105,7 @@ public class UnbreakableAbility extends Ability implements SpecialCase {
                 if (addToY > 3) addToY = 0;
 
                 for (UUID uuid : arena.getPlayers()) {
-                    if (uuid == quirk.getUUID()) continue;
+                    if (uuid == quirk.getUniqueId()) continue;
 
                     Player showFor = Bukkit.getPlayer(uuid);
                     for (double t = 0; t < 1000; t += 0.5) {

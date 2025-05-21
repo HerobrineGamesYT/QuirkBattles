@@ -3,12 +3,13 @@ package net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.fire;
 import net.herobrine.gamecore.Class;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
+import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 public class FireAbilityTest extends Ability {
-    public FireAbilityTest(Abilities ability, Class quirk, int id, int slot) {
+    public FireAbilityTest(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
     }
 

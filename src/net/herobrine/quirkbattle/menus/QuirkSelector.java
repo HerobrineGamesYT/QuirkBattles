@@ -89,6 +89,7 @@ public class QuirkSelector implements Listener {
 
             ClassTypes type;
             if (e.getCurrentItem().getType().equals(Material.BLAZE_ROD)) type = ClassTypes.ICYHOT;
+            else if (classString.equals("ALLFORONE")) type = ClassTypes.ALL_FOR_ONE;
             else type = ClassTypes.valueOf(classString);
 
             if (Manager.hasKit(player) && Manager.getKit(player).equals(type)) {

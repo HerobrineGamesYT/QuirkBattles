@@ -40,7 +40,8 @@ public class OneForAll extends Class implements Quirk, Switchable {
     private long lastStaminaCharge = 0;
 
     private boolean canPowerUp = true;
-
+    private final List<Ability> transferList = new ArrayList<>();
+    private final List<Ability> secondaryAbilities = new ArrayList<>();
     private boolean isBeingErased = false;
     private final List<Ability> abilities;
 
@@ -211,6 +212,16 @@ public class OneForAll extends Class implements Quirk, Switchable {
     @Override
     public AbilitySets getCurrentSet() {
         return currentSet;
+    }
+
+    @Override
+    public UUID getUniqueId() {
+        return uuid;
+    }
+
+    @Override
+    public UUID getOriginalId() {
+        return getUUID();
     }
 
     @Override

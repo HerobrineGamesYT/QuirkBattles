@@ -5,6 +5,7 @@ import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.abilities.SpecialCase;
 import net.herobrine.quirkbattle.game.quirks.hero.IcyHot;
+import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -13,7 +14,7 @@ public class FlashfireFistAbility extends Ability implements SpecialCase {
 
     private final IcyHot icyHot;
 
-    public FlashfireFistAbility(Abilities ability, Class quirk, int id, int slot) {
+    public FlashfireFistAbility(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
         this.icyHot = (IcyHot) quirk;
     }

@@ -12,6 +12,7 @@ import net.herobrine.quirkbattle.event.OverheatEvent;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.stats.PlayerStats;
 import net.herobrine.quirkbattle.util.NBTReader;
+import net.herobrine.quirkbattle.util.Quirk;
 import net.minecraft.server.v1_8_R3.EnumParticle;
 import net.minecraft.server.v1_8_R3.PacketPlayOutWorldParticles;
 import org.bukkit.Bukkit;
@@ -36,13 +37,14 @@ import java.lang.Class;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public abstract class Ability implements Listener {
     // ability quirk is using
     protected Abilities ability;
     //quirk using the ability, given when initializing the ability class.
-    protected net.herobrine.gamecore.Class quirk;
+    protected Quirk quirk;
 
     //arena id
     protected int id;
@@ -65,13 +67,13 @@ public abstract class Ability implements Listener {
 
     private int cooldownSeconds = 0;
 
-    public Ability(Abilities ability, net.herobrine.gamecore.Class quirk, int id, int slot) {
+    public Ability(Abilities ability, Quirk quirk, int id, int slot) {
         this.ability = ability;
         this.quirk = quirk;
         this.id = id;
         this.slot = slot;
         this.cooldown = 0;
-        this.uuid = quirk.getUUID();
+        this.uuid = quirk.getUniqueId();
         this.arena = Manager.getArena(id);
         this.stats = arena.getQuirkBattleGame().getStats(Bukkit.getPlayer(uuid));
         this.active = true;
@@ -165,6 +167,7 @@ public abstract class Ability implements Listener {
         NBTReader reader = new NBTReader(itemStack);
         reader.writeStringNBT("id", ability::name);
         return reader.toBukkit();
+
     }
 
     public ItemStack getErasedItem() {
@@ -183,8 +186,8 @@ public abstract class Ability implements Listener {
         return reader.toBukkit();
     }
 
-    public ArrayList<String> doLore() {
-        ArrayList<String> lore = new ArrayList<String>();
+    public List<String> doLore() {
+        List<String> lore = new ArrayList<String>();
         //We'll add a blank line if the item has any stats, for UI cleanliness between the stats and lore.
         try {
             for (String string : ability.getDescription()) {
@@ -206,12 +209,21 @@ public abstract class Ability implements Listener {
         }
 
         if (shouldAddSpace) lore.add(" ");
-        if (ability.getCost() != 0 && !stats.useTemperature())
-            lore.add(ChatColor.DARK_GRAY + "Stamina Cost: " + ChatColor.DARK_AQUA + ability.getCost());
-        if (ability.getCost() != 0 && stats.useTemperature())
-            lore.add(ChatColor.DARK_GRAY + "Temperature Cost: " + ChatColor.GREEN + ability.getCost());
-        if (ability.getCooldown() != 0)
-            lore.add(ChatColor.DARK_GRAY + "Cooldown: " + ChatColor.GREEN + (float) ability.getCooldown() / 1000 + "s");
+        if (ability.getCost() != 0 && !stats.useTemperature()) lore.add(ChatColor.DARK_GRAY + "Stamina Cost: " + ChatColor.DARK_AQUA + ability.getCost());
+
+        if (ability.getCost() != 0 && stats.useTemperature()) lore.add(ChatColor.DARK_GRAY + "Temperature Cost: " + ChatColor.GREEN + ability.getCost());
+
+        if(ability.getMinStamina() != 0 && !stats.useTemperature()) {
+            if(ability.getMinStamina() > 0) lore.add(ChatColor.DARK_GRAY + "Minimum Stamina: " + ChatColor.DARK_AQUA + ability.getMinStamina());
+            if (ability.getMinStamina() < 0) lore.add(ChatColor.DARK_GRAY + "Maximum Stamina: " + ChatColor.DARK_AQUA + (ability.getMinStamina() * -1));
+        }
+
+        if (ability.getMinStamina() != 0 && stats.useTemperature()) {
+            if(ability.getMinStamina() > 0) lore.add(ChatColor.DARK_GRAY + "Minimum Temperature: " + ChatColor.GREEN + ability.getMinStamina());
+            if (ability.getMinStamina() < 0) lore.add(ChatColor.DARK_GRAY + "Maximum Temperature: " + ChatColor.GREEN + (ability.getMinStamina() * -1));
+        }
+
+        if (ability.getCooldown() != 0) lore.add(ChatColor.DARK_GRAY + "Cooldown: " + ChatColor.GREEN + (float) ability.getCooldown() / 1000 + "s");
 
         return lore;
     }
@@ -220,12 +232,13 @@ public abstract class Ability implements Listener {
         return ability;
     }
 
-    public net.herobrine.gamecore.Class getQuirk() {
+    public Quirk getQuirk() {
         return quirk;
     }
 
     public int getPlayerMana() {return arena.getQuirkBattleGame().getStats(Bukkit.getPlayer(uuid)).getMana();}
     public int getPlayerTemp() {return arena.getQuirkBattleGame().getStats(Bukkit.getPlayer(uuid)).getTemp();}
+    public int getSlot() {return slot;}
 
     public boolean shouldDoAbility(Player player) {
         if (!arena.getState().equals(GameState.LIVE)) {
@@ -236,9 +249,6 @@ public abstract class Ability implements Listener {
         int health = arena.getQuirkBattleGame().getStats(player).getHealth();
         int intelligence = arena.getQuirkBattleGame().getStats(player).getIntelligence();
         int mana = arena.getQuirkBattleGame().getStats(player).getMana();
-        player.sendMessage(ChatColor.GREEN + "Your Quirk: " + getQuirk().getClassType());
-        player.sendMessage(ChatColor.GREEN + "This ability instance is for: " + ability);
-        player.sendMessage(ChatColor.GREEN + "Use temp: " + stats.useTemperature());
         //Cost is checked before min stamina that the message is not triggered accidentally!
         if (this.hasManaCost() && getPlayerMana() < this.getAbility().getCost()) {
             player.sendMessage(ChatColor.RED + "Not enough stamina!");

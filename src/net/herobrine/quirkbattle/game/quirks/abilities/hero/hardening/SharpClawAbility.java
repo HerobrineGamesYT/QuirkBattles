@@ -1,10 +1,10 @@
 package net.herobrine.quirkbattle.game.quirks.abilities.hero.hardening;
 
-import net.herobrine.gamecore.Class;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.abilities.SpecialCase;
 import net.herobrine.quirkbattle.game.quirks.hero.Hardening;
+import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 public class SharpClawAbility extends Ability implements SpecialCase {
     private Hardening hardening;
 
-    public SharpClawAbility(Abilities ability, Class quirk, int id, int slot) {
+    public SharpClawAbility(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
         this.hardening = (Hardening) quirk;
     }

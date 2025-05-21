@@ -2,7 +2,6 @@ package net.herobrine.quirkbattle.game.quirks.abilities.hero.explosion;
 
 import net.herobrine.core.HerobrinePVPCore;
 import net.herobrine.gamecore.Arena;
-import net.herobrine.gamecore.Class;
 import net.herobrine.gamecore.GameState;
 import net.herobrine.gamecore.Manager;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
@@ -10,6 +9,7 @@ import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.hero.Explosion;
+import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -23,7 +23,7 @@ import java.util.UUID;
 public class HowitzerImpactAbility extends Ability {
     private final Explosion exp;
 
-    public HowitzerImpactAbility(Abilities ability, Class quirk, int id, int slot) {
+    public HowitzerImpactAbility(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
         this.exp = (Explosion) quirk;
     }
@@ -45,10 +45,6 @@ public class HowitzerImpactAbility extends Ability {
             @Override
             public void run() {
                 if (arena.getState() != GameState.LIVE) {
-                    cancel();
-                    return;
-                }
-                if (arena.getClasses().get(player.getUniqueId()) != getQuirk()) {
                     cancel();
                     return;
                 }

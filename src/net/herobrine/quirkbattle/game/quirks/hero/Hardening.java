@@ -13,8 +13,11 @@ import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.abilities.AbilitySets;
+import net.herobrine.quirkbattle.game.quirks.abilities.Stealable;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.hardening.StoneChargeAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.hardening.UnbreakableAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.fire.OverdriveAbility;
+import net.herobrine.quirkbattle.game.quirks.villain.AllForOne;
 import net.herobrine.quirkbattle.game.stats.PlayerStats;
 import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.Bukkit;
@@ -32,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class Hardening extends Class implements Quirk {
+public class Hardening extends Class implements Quirk, Stealable {
     private final Arena arena;
     private final List<Ability> abilities;
     private PlayerStats stats;
@@ -41,11 +44,13 @@ public class Hardening extends Class implements Quirk {
     private boolean isUnbreakable;
     private boolean isBeingErased = false;
     private int hitCount;
+    private final UUID originalId;
 
     public Hardening(UUID uuid) {
         super(uuid, ClassTypes.HARDENING);
         this.arena = Manager.getArena(Bukkit.getPlayer(uuid));
         this.abilities = new ArrayList<>();
+        this.originalId = uuid;
     }
 
     @Override
@@ -120,12 +125,24 @@ public class Hardening extends Class implements Quirk {
     }
 
     public void setSharpClaw(boolean isSharpClaw) {
+        if (!isUnbreakable && isSharpClaw) player.getInventory().getItem(getAbilities().get(0).getSlot()).setAmount(hitCount + 3);
+        if (!isSharpClaw) player.getInventory().getItem(getAbilities().get(0).getSlot()).setAmount(1);
         this.isSharpClaw = isSharpClaw;
     }
 
     @Override
     public List<Ability> getAbilities() {
         return abilities;
+    }
+
+    @Override
+    public UUID getUniqueId() {
+        return uuid;
+    }
+
+    @Override
+    public UUID getOriginalId() {
+        return originalId;
     }
 
     @Override
@@ -153,8 +170,13 @@ public class Hardening extends Class implements Quirk {
             target.sendMessage(ChatColor.GOLD + player.getName() + ChatColor.GREEN + " just hit you with their " + HerobrinePVPCore.translateString("&c&lSharpened Claw &r&aattack!"));
             player.sendMessage(ChatColor.GREEN + "You just hit " + ChatColor.GOLD + target.getName() +
                     ChatColor.GREEN + " with your " + HerobrinePVPCore.translateString("&c&lSharpened Claw &r&aattack!"));
-            if (!isUnbreakable) hitCount = hitCount + 1;
+            if (!isUnbreakable) {
+                hitCount = hitCount + 1;
+                player.getInventory().getItem(getAbilities().get(0).getSlot()).setAmount(3 - hitCount);
+            }
+
             if (hitCount >= 3) {
+                player.getInventory().getItem(getAbilities().get(0).getSlot()).setAmount(1);
                 getAbilities().get(0).setCooldown(System.currentTimeMillis());
                 getAbilities().get(0).doAbilityCooldown();
                 this.isSharpClaw = false;
@@ -190,5 +212,44 @@ public class Hardening extends Class implements Quirk {
            }
         }
         else isBeingErased = false;
+    }
+
+    @Override
+    public void steal(Player stealer) {
+        QuirkErasureEvent event = new QuirkErasureEvent(player, true);
+        Bukkit.getPluginManager().callEvent(event);
+        player.sendMessage(HerobrinePVPCore.translateString("&c&lOH NO!&r &7Looks like your Quirk was stolen by &c" + stealer.getName() + "&7!"));
+        this.uuid = stealer.getUniqueId();
+        this.player = stealer;
+        this.stats = arena.getQuirkBattleGame().getStats(stealer);
+        this.hitCount = 0;
+        this.setSharpClaw(false);
+        AllForOne afo = (AllForOne) arena.getClasses().get(stealer.getUniqueId());
+        afo.giveAbilitySet(AbilitySets.HARDENING, this);
+    }
+
+    @Override
+    public void restore() {
+        if (isUnbreakable) {
+            AllForOne afo = (AllForOne) arena.getClasses().get(player.getUniqueId());
+            if (afo.getCurrentSet().equals(AbilitySets.HARDENING)) {
+                UnbreakableAbility unbreakable =  (UnbreakableAbility) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(afo, Abilities.UNBREAKABLE);
+                unbreakable.stopUnbreakableNoCooldown();
+                unbreakable.setCooldown(0);
+            }
+        }
+
+        this.uuid = getOriginalId();
+        this.player = Bukkit.getPlayer(getOriginalId());
+        this.stats = arena.getQuirkBattleGame().getPlayerStatsMap().get(getOriginalId());
+        this.setSharpClaw(false);
+        this.hitCount = 0;
+
+        for (Ability ability : abilities) {
+            ability.setActive(true);
+        }
+        isBeingErased = false;
+        player.sendMessage(ChatColor.GREEN + "Your quirk has been restored!");
+        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
     }
 }

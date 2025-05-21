@@ -10,6 +10,7 @@ import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.hero.OneForAll;
+import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -21,7 +22,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 public class ShootStyleAbility extends Ability {
-    public ShootStyleAbility(Abilities ability, Class quirk, int id, int slot) {
+    public ShootStyleAbility(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
     }
 

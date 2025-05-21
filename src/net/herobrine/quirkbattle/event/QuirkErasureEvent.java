@@ -18,8 +18,8 @@ public class QuirkErasureEvent extends PlayerEvent {
 
     private final boolean erase;
 
-    //To erase a player Quirk, create this event and call it. Calling the event will disable/re-enable any extra elements of each individual quirk that exist
-    // outside the ability system.
+    //To erase a player Quirk, create this event and call it. Quirks listening to this event will disable/re-enable any extra elements of each individual quirk that exist
+    // outside the ability system as well.
     // Quirks that have this will listen for this event and have the proper "switches" implemented.
 
     public QuirkErasureEvent(Player player, boolean erase) {

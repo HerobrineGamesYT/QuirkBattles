@@ -6,6 +6,7 @@ import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
+import net.herobrine.quirkbattle.util.Quirk;
 import net.minecraft.server.v1_8_R3.EnumParticle;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -30,11 +31,11 @@ import java.util.Map;
 import java.util.UUID;
 
 public class IceWallAbility extends Ability {
-    private final Player player = Bukkit.getPlayer(quirk.getUUID());
+    private final Player player = Bukkit.getPlayer(quirk.getUniqueId());
     private final List<ArmorStand> standLocations = new ArrayList<>();
     private final Map<UUID, Boolean> hasHit = new HashMap<>();
 
-    public IceWallAbility(Abilities ability, Class quirk, int id, int slot) {
+    public IceWallAbility(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
     }
 
@@ -54,7 +55,6 @@ public class IceWallAbility extends Ability {
         Location loc = centerLocation.clone();
         spawnStand(centerLocation);
         centerLocation.getWorld().playSound(centerLocation, Sound.GLASS, 1f, 1f);
-
         new BukkitRunnable(){
             Location origin = loc;
             Location endpoint = loc.add(loc.getDirection().normalize());
@@ -75,8 +75,6 @@ public class IceWallAbility extends Ability {
                 spawnParticle(start, EnumParticle.SNOW_SHOVEL, true);
                 spawnRGBParticles(start, 184,253,255, true);
                 spawnRGBParticles(start, 220,254,255,true);
-
-               // damage(p,start,playerdata.get(p.getUniqueId()).getQUIRK().getQUIRKCASTMANAGER().getABILITY1_DAMAGE());
                 origin = start.clone();
                 origin.setY(0);
                 endpoint = origin.clone().add(loc.getDirection().normalize());
@@ -152,26 +150,29 @@ public class IceWallAbility extends Ability {
         }
     }
     public void spawnStand(Location loc) {
-        ArmorStand ice = loc.getWorld().spawn(loc.clone().add(new Vector(0,1,0)), ArmorStand.class);
-        loc.getWorld().playSound(loc, Sound.GLASS, 1f, 1f);
-        addStandToList(ice);
+        ArmorStand ice = player.getWorld().spawn(loc.clone().add(new Vector(0,1,0)), ArmorStand.class);
+
         ice.setCustomNameVisible(false);
         ice.setCustomName(uuid.toString());
         ice.setBasePlate(false);
         ice.setGravity(true);
         ice.setSmall(true);
-        ice.setMarker(true);
-        ice.setVisible(false);
-        ice.setHeadPose(new EulerAngle(Math.random(), Math.random(), Math.random()));
         ice.setHelmet(new ItemStack(Material.ICE, 1));
+        ice.setHeadPose(new EulerAngle(Math.random(), Math.random(), Math.random()));
+        ice.setVisible(false);
+
+        addStandToList(ice);
+
+        loc.getWorld().playSound(loc, Sound.GLASS, 1f, 1f);
+
     }
 
     public void addStandToList(ArmorStand stand) {
         standLocations.add(stand);
     }
 
+
     public void revertIce(List<ArmorStand> stands) {
-        
         new BukkitRunnable() {
             @Override
             public void run() {

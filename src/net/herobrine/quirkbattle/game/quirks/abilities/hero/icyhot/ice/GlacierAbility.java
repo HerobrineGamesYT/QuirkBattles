@@ -3,20 +3,17 @@ package net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.ice;
 import net.herobrine.core.HerobrinePVPCore;
 import net.herobrine.gamecore.Class;
 import net.herobrine.gamecore.GameState;
-import net.herobrine.gamecore.GameType;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.abilities.SpecialCase;
 import net.herobrine.quirkbattle.game.quirks.hero.IcyHot;
-import net.minecraft.server.v1_8_R3.EnumParticle;
-import net.minecraft.server.v1_8_R3.PacketPlayOutWorldParticles;
+import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
-import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -35,7 +32,7 @@ public class GlacierAbility extends Ability implements SpecialCase {
 
     private final Map<UUID, Long> hasHit = new HashMap<>();
 
-    public GlacierAbility(Abilities ability, Class quirk, int id, int slot) {
+    public GlacierAbility(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
         this.icy = (IcyHot) quirk;
     }
@@ -140,7 +137,7 @@ public class GlacierAbility extends Ability implements SpecialCase {
 
     public void stopGlacierNoCooldown() {
         icy.setGlacierOn(false);
-        if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.RED + " is no longer using their " + HerobrinePVPCore.translateString("&b&lGLACIER&r&c ability."));
+        if (arena.getType().isTeamsMode()) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.RED + " is no longer using their " + HerobrinePVPCore.translateString("&b&lGLACIER&r&c ability."));
         else arena.sendMessage(arena.getTeam(player).getColor() + player.getName() + ChatColor.RED + " is no longer using their " + HerobrinePVPCore.translateString("&b&lGLACIER&r&c ability."));
     }
 
@@ -148,7 +145,7 @@ public class GlacierAbility extends Ability implements SpecialCase {
         icy.setGlacierOn(false);
         setCooldown(System.currentTimeMillis());
         doAbilityCooldown();
-        if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.RED + " is no longer using their " + HerobrinePVPCore.translateString("&b&lGLACIER&r&c ability."));
+        if (!arena.getType().isTeamsMode()) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.RED + " is no longer using their " + HerobrinePVPCore.translateString("&b&lGLACIER&r&c ability."));
         else arena.sendMessage(arena.getTeam(player).getColor() + player.getName() + ChatColor.RED + " is no longer using their " + HerobrinePVPCore.translateString("&b&lGLACIER&r&c ability."));
     }
 

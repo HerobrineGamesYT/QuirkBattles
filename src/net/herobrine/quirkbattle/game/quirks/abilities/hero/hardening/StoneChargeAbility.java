@@ -2,7 +2,6 @@ package net.herobrine.quirkbattle.game.quirks.abilities.hero.hardening;
 
 import net.herobrine.core.HerobrinePVPCore;
 import net.herobrine.gamecore.Arena;
-import net.herobrine.gamecore.Class;
 import net.herobrine.gamecore.GameState;
 import net.herobrine.gamecore.Manager;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
@@ -11,6 +10,7 @@ import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.abilities.SpecialCase;
 import net.herobrine.quirkbattle.game.quirks.hero.Hardening;
+import net.herobrine.quirkbattle.util.Quirk;
 import net.minecraft.server.v1_8_R3.EnumParticle;
 import net.minecraft.server.v1_8_R3.PacketPlayOutWorldParticles;
 import org.bukkit.Bukkit;
@@ -31,7 +31,7 @@ public class StoneChargeAbility extends Ability implements SpecialCase {
 
     private boolean isCharging;
 
-    public StoneChargeAbility(Abilities ability, Class quirk, int id, int slot) {
+    public StoneChargeAbility(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
         this.hardening = (Hardening) quirk;
         this.player = Bukkit.getPlayer(uuid);

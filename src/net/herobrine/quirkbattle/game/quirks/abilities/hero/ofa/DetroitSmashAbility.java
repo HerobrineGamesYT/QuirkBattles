@@ -1,7 +1,6 @@
 package net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa;
 
 import net.herobrine.core.HerobrinePVPCore;
-import net.herobrine.gamecore.Class;
 import net.herobrine.gamecore.GameState;
 import net.herobrine.gamecore.Manager;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
@@ -9,6 +8,7 @@ import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.hero.OneForAll;
+import net.herobrine.quirkbattle.util.Quirk;
 import net.minecraft.server.v1_8_R3.EnumParticle;
 import net.minecraft.server.v1_8_R3.PacketPlayOutWorldParticles;
 import org.bukkit.Bukkit;
@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 public class DetroitSmashAbility extends Ability {
-    public DetroitSmashAbility(Abilities ability, Class quirk, int id, int slot) {
+    public DetroitSmashAbility(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
     }
 

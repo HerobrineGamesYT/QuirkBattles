@@ -6,6 +6,7 @@ import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
+import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -23,18 +24,16 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public class IceShardAbility extends Ability {
 
-    private final Player player = Bukkit.getPlayer(quirk.getUUID());
+    private final Player player = Bukkit.getPlayer(quirk.getUniqueId());
     private final Map<UUID, Boolean> hasHit = new HashMap<>();
 
-    public IceShardAbility(Abilities ability, Class quirk, int id, int slot) {
+    public IceShardAbility(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
     }
 

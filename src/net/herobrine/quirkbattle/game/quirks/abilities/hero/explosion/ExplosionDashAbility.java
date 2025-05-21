@@ -2,7 +2,6 @@ package net.herobrine.quirkbattle.game.quirks.abilities.hero.explosion;
 
 import net.herobrine.core.HerobrinePVPCore;
 import net.herobrine.gamecore.Arena;
-import net.herobrine.gamecore.Class;
 import net.herobrine.gamecore.GameState;
 import net.herobrine.gamecore.Manager;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
@@ -10,6 +9,7 @@ import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.hero.Explosion;
+import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
@@ -24,7 +24,7 @@ import java.util.UUID;
 public class ExplosionDashAbility extends Ability {
     private final Explosion exp;
 
-    public ExplosionDashAbility(Abilities ability, Class quirk, int id, int slot) {
+    public ExplosionDashAbility(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
         exp = (Explosion) quirk;
     }

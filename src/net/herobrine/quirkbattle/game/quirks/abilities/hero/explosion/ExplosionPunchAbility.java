@@ -1,10 +1,10 @@
 package net.herobrine.quirkbattle.game.quirks.abilities.hero.explosion;
 
-import net.herobrine.gamecore.Class;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.abilities.SpecialCase;
 import net.herobrine.quirkbattle.game.quirks.hero.Explosion;
+import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 public class ExplosionPunchAbility extends Ability implements SpecialCase {
     private final Explosion exp;
 
-    public ExplosionPunchAbility(Abilities ability, Class quirk, int id, int slot) {
+    public ExplosionPunchAbility(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
         this.exp = (Explosion) quirk;
     }

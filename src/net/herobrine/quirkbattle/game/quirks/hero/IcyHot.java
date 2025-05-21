@@ -15,9 +15,11 @@ import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.abilities.AbilitySets;
+import net.herobrine.quirkbattle.game.quirks.abilities.Stealable;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.fire.OverdriveAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.ice.GlacierAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.SwitchAbilitySetTest;
+import net.herobrine.quirkbattle.game.quirks.villain.AllForOne;
 import net.herobrine.quirkbattle.game.stats.PlayerStats;
 import net.herobrine.quirkbattle.util.Quirk;
 import net.herobrine.quirkbattle.util.Switchable;
@@ -37,15 +39,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class IcyHot extends Class implements Quirk, Switchable {
+public class IcyHot extends Class implements Quirk, Switchable, Stealable {
     private final List<Ability> abilities;
     private final Arena arena;
     private PlayerStats stats;
-
-    private final Player player;
+    private final List<Ability> transferList = new ArrayList<>();
+    private final List<Ability> secondaryAbilities = new ArrayList<>();
+    private Player player;
+    private final UUID originalId;
     private boolean isSwitcherActive = false;
+
     private AbilitySets currentSet;
-    private AbilitySets[] availableSets;
+    private final AbilitySets[] availableSets;
     private boolean isStunned = false;
     private boolean isBeingErased = false;
 
@@ -61,6 +66,7 @@ public class IcyHot extends Class implements Quirk, Switchable {
         this.abilities = new ArrayList<>();
         this.availableSets = new AbilitySets[]{AbilitySets.ICE, AbilitySets.FIRE};
         this.player = Bukkit.getPlayer(uuid);
+        this.originalId = uuid;
     }
 
 
@@ -97,11 +103,13 @@ public class IcyHot extends Class implements Quirk, Switchable {
 
     @Override
     public void useAbilityAttack(Player target) {
+        Quirk quirk = (Quirk) arena.getClasses().get(uuid);
         setFireFist(false);
-        arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.FLASHFIRE_FIST).setCooldown(System.currentTimeMillis());
-        arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.FLASHFIRE_FIST).doAbilityCooldown();
 
-        getAbilities().get(0).spawnRGBParticles(target.getEyeLocation().add(0, 1.5, 0),  179, 67, 27, false);
+        arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk((Class) quirk, Abilities.FLASHFIRE_FIST).setCooldown(System.currentTimeMillis());
+        arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk((Class) quirk, Abilities.FLASHFIRE_FIST).doAbilityCooldown();
+        quirk.getAbilities().get(0).spawnRGBParticles(target.getEyeLocation().add(0, 1.5, 0), 179, 67, 27, true);
+
         EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, Abilities.FLASHFIRE_FIST.getDamage());
         arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.FLASHFIRE_FIST);
         arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
@@ -113,7 +121,7 @@ public class IcyHot extends Class implements Quirk, Switchable {
         new BukkitRunnable() {
             @Override
             public void run() {
-                getAbilities().get(0).spawnRGBParticles(target.getEyeLocation().add(0, 1.5, 0),  179, 67, 27, false);
+                quirk.getAbilities().get(0).spawnRGBParticles(target.getEyeLocation().add(0, 1.5, 0),  179, 67, 27, false);
                 EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, Abilities.FLASHFIRE_FIST.getDamage());
                 arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.FLASHFIRE_FIST);
                 arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
@@ -127,7 +135,7 @@ public class IcyHot extends Class implements Quirk, Switchable {
         new BukkitRunnable() {
             @Override
             public void run() {
-                getAbilities().get(0).spawnRGBParticles(target.getEyeLocation().add(0, 1.5, 0),  179, 67, 27, false);
+                quirk.getAbilities().get(0).spawnRGBParticles(target.getEyeLocation().add(0, 1.5, 0),  179, 67, 27, false);
                 EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, Abilities.FLASHFIRE_FIST.getDamage());
                 arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.FLASHFIRE_FIST);
                 arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
@@ -165,6 +173,15 @@ public class IcyHot extends Class implements Quirk, Switchable {
 
         }
 
+    }
+    @Override
+    public UUID getUniqueId() {
+        return uuid;
+    }
+
+    @Override
+    public UUID getOriginalId() {
+        return originalId;
     }
 
     @Override
@@ -226,16 +243,17 @@ public class IcyHot extends Class implements Quirk, Switchable {
         new BukkitRunnable() {
             @Override
             public void run() {
-                if (arena.getState() != GameState.LIVE) {
+                if (arena.getState() != GameState.LIVE || !arena.getQuirkBattleGame().getAlivePlayers().contains(player.getUniqueId())) {
                     cancel();
                     secondaryAbilities.clear();
                     transferList.clear();
                     abilities.clear();
                     return;
                 }
-                int tempChange = currentSet.getTempPerSecond();
+                Switchable quirk =  (Switchable) arena.getClasses().get(uuid);
+                int tempChange = quirk.getCurrentSet().getTempPerSecond();
                 if (isStunned) return;
-                if (isBeingErased) return;
+                if (isBeingErased && originalId == uuid) return;
                 if (stats.useTemperature() && stats.getTemp() + tempChange < 0) {
                     stats.setTemp(tempChange + stats.getTemp());
                     FrostbiteEvent frost = new FrostbiteEvent(Bukkit.getPlayer(uuid));
@@ -254,7 +272,8 @@ public class IcyHot extends Class implements Quirk, Switchable {
 
     @EventHandler
     public void onFrost(FrostbiteEvent event) {
-        if (event.getQuirk() != this) return;
+        if (event.getQuirk() != this && originalId == uuid) return;
+        if (event.getPlayer().getUniqueId() != uuid) return;
         isStunned = true;
         if (isGlacierOn) {
             GlacierAbility glacier = (GlacierAbility) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.GLACIER);
@@ -262,6 +281,7 @@ public class IcyHot extends Class implements Quirk, Switchable {
         }
         int damage = 3;
         int warmPerTick = 2;
+
         for (Ability ability : abilities) {
             ability.setActive(false);
         }
@@ -282,7 +302,8 @@ public class IcyHot extends Class implements Quirk, Switchable {
                     event.getPlayer().sendMessage(HerobrinePVPCore.translateString("&e&lPHEW! &fYou've warmed up now. Be careful!"));
                     return;
                 }
-                getAbilities().get(0).spawnRGBParticles(event.getPlayer().getEyeLocation().add(0,1.5,0),22, 221, 224,false);
+                Quirk quirk = (Quirk) arena.getClasses().get(uuid);
+                quirk.getAbilities().get(0).spawnRGBParticles(event.getPlayer().getEyeLocation().add(0,1.5,0),22, 221, 224,false);
                 if (stats.getTemp() + 1 == stats.getBaseTemp()) stats.setTemp(stats.getBaseTemp());
                 else stats.setTemp(stats.getTemp() + warmPerTick);
                 EntityDamageEvent dmg = new EntityDamageEvent(event.getPlayer(), EntityDamageEvent.DamageCause.CUSTOM, damage);
@@ -295,7 +316,8 @@ public class IcyHot extends Class implements Quirk, Switchable {
 
     @EventHandler
     public void onOverHeat(OverheatEvent event) {
-        if (event.getQuirk() != this) return;
+        if (event.getQuirk() != this && originalId == uuid) return;
+        if (event.getPlayer().getUniqueId() != uuid) return;
         isStunned = true;
 
         if (isOverdriveOn) {
@@ -325,7 +347,8 @@ public class IcyHot extends Class implements Quirk, Switchable {
                     }
                     return;
                 }
-                getAbilities().get(0).spawnRGBParticles(event.getPlayer().getEyeLocation().add(0, 1.5, 0),  179, 67, 27, false);
+                Quirk quirk = (Quirk) arena.getClasses().get(uuid);
+                quirk.getAbilities().get(0).spawnRGBParticles(event.getPlayer().getEyeLocation().add(0, 1.5, 0),  179, 67, 27, false);
                 if (stats.getTemp() - 1 == stats.getBaseTemp()) stats.setTemp(stats.getBaseTemp());
                 else stats.setTemp(stats.getTemp() + coolPerTick);
                 EntityDamageEvent dmg = new EntityDamageEvent(event.getPlayer(), EntityDamageEvent.DamageCause.CUSTOM, damage);
@@ -369,5 +392,67 @@ public class IcyHot extends Class implements Quirk, Switchable {
             SwitchAbilitySetTest switcher = (SwitchAbilitySetTest) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.OFA_ABILITY_SWITCH_TEST);
             switcher.setActive(true);
         }
+    }
+
+    @Override
+    public void steal(Player stealer) {
+        if (isGlacierOn()) {
+            GlacierAbility glacier =  (GlacierAbility) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.GLACIER);
+            glacier.stopGlacierNoCooldown();
+            glacier.setCooldown(0);
+        }
+        if (isOverdriveOn()) {
+            OverdriveAbility overdrive = (OverdriveAbility) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.FLAME_OVERDRIVE);
+            overdrive.stopOverdriveNoCooldown();
+            overdrive.setCooldown(0);
+        }
+        setFireFist(false);
+
+        stats.setTemp(stats.getBaseTemp());
+
+        QuirkErasureEvent event = new QuirkErasureEvent(player, true);
+        Bukkit.getPluginManager().callEvent(event);
+        player.sendMessage(HerobrinePVPCore.translateString("&c&lOH NO!&r &7Looks like your Quirk was stolen by &c" + stealer.getName() + "&7!"));
+        this.uuid = stealer.getUniqueId();
+        this.player = stealer;
+        this.stats = arena.getQuirkBattleGame().getStats(stealer);
+        AllForOne afo = (AllForOne) arena.getClasses().get(stealer.getUniqueId());
+        afo.giveAbilitySet(currentSet, this);
+    }
+
+    @Override
+    public void restore() {
+        if (isGlacierOn()) {
+            AllForOne afo = (AllForOne) arena.getClasses().get(player.getUniqueId());
+            if (afo.getCurrentSet().equals(AbilitySets.ICE)) {
+                GlacierAbility glacier =  (GlacierAbility) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(afo, Abilities.GLACIER);
+                glacier.stopGlacierNoCooldown();
+                glacier.setCooldown(0);
+            }
+        }
+        if (isOverdriveOn()) {
+            AllForOne afo = (AllForOne) arena.getClasses().get(player.getUniqueId());
+            if (afo.getCurrentSet().equals(AbilitySets.FIRE)) {
+                OverdriveAbility overdrive =  (OverdriveAbility) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(afo, Abilities.FLAME_OVERDRIVE);
+                overdrive.stopOverdriveNoCooldown();
+                overdrive.setCooldown(0);
+            }
+        }
+        setFireFist(false);
+
+        stats.setTemp(stats.getBaseTemp());
+
+        this.uuid = getOriginalId();
+        this.player = Bukkit.getPlayer(getOriginalId());
+        this.stats = arena.getQuirkBattleGame().getPlayerStatsMap().get(getOriginalId());
+
+        for (Ability ability : abilities) {
+            ability.setActive(true);
+        }
+        isBeingErased = false;
+        SwitchAbilitySetTest switcher = (SwitchAbilitySetTest) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.OFA_ABILITY_SWITCH_TEST);
+        switcher.setActive(true);
+        player.sendMessage(ChatColor.GREEN + "Your quirk has been restored!");
+        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
     }
 }

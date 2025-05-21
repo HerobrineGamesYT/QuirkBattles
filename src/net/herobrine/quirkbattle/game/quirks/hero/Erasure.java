@@ -14,6 +14,8 @@ import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.abilities.AbilitySets;
+import net.herobrine.quirkbattle.game.quirks.abilities.Stealable;
+import net.herobrine.quirkbattle.game.quirks.villain.AllForOne;
 import net.herobrine.quirkbattle.game.stats.PlayerStats;
 import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.Bukkit;
@@ -38,12 +40,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class Erasure extends Class implements Quirk {
+public class Erasure extends Class implements Quirk, Stealable {
 
     private final List<Ability> abilities;
     private PlayerStats stats;
     private final Arena arena;
-    private final Player player;
+    private Player player;
+    private final UUID originalId;
 
 
     // Stamina you gain every second for erasing a player quirk, per player.
@@ -74,6 +77,7 @@ public class Erasure extends Class implements Quirk {
         super(uuid, ClassTypes.ERASURE);
         arena = Manager.getArena(Bukkit.getPlayer(uuid));
         player = Bukkit.getPlayer(uuid);
+        this.originalId = uuid;
         this.abilities = new ArrayList<>();
         // We make the Stamina gain higher in 1v1s to make the quirk more balanced!
         if (arena.getType() == GameType.ONE_V_ONE) this.erasureStaminaGain = 16;
@@ -81,7 +85,7 @@ public class Erasure extends Class implements Quirk {
 
     @Override
     public void onStart(Player player) {
-        stats = new PlayerStats(uuid, 200, 200, 40, 0, 250, 1);
+        stats = new PlayerStats(uuid, 200, 200, 40, 0, 200, 1);
         PotionEffect effect = PotionEffectType.SPEED.createEffect(10000000, 0);
         arena.getQuirkBattleGame().getPlayerStatsMap().put(uuid, stats);
         player.getInventory().clear();
@@ -99,7 +103,11 @@ public class Erasure extends Class implements Quirk {
         startErasing();
     }
 
-    public void setSharpenedKnife(boolean sharp) {this.sharpenedKnife = sharp;}
+    public void setSharpenedKnife(boolean sharp) {
+        if (sharp) player.getInventory().getItem(getAbilities().get(1).getSlot()).setAmount(hitCount + 3);
+        if (!sharp) player.getInventory().getItem(getAbilities().get(1).getSlot()).setAmount(1);
+        this.sharpenedKnife = sharp;
+    }
 
     @Override
     public List<Ability> getAbilities() {
@@ -114,6 +122,11 @@ public class Erasure extends Class implements Quirk {
     @Override
     public boolean shouldUseAbilityAttack() {
         return sharpenedKnife;
+    }
+
+    @Override
+    public UUID getUniqueId() {
+        return uuid;
     }
 
     @Override
@@ -132,7 +145,9 @@ public class Erasure extends Class implements Quirk {
             player.sendMessage(ChatColor.GREEN + "You just hit " + ChatColor.GOLD + target.getName() +
                     ChatColor.GREEN + " with your " + HerobrinePVPCore.translateString("&c&lSharpened Knife &r&aattack!"));
             hitCount = hitCount + 1;
+            player.getInventory().getItem(getAbilities().get(1).getSlot()).setAmount(3 - hitCount);
             if (hitCount >= 3) {
+                player.getInventory().getItem(getAbilities().get(1).getSlot()).setAmount(1);
                 getAbilities().get(1).setCooldown(System.currentTimeMillis());
                 getAbilities().get(1).doAbilityCooldown();
                 this.sharpenedKnife = false;
@@ -146,6 +161,10 @@ public class Erasure extends Class implements Quirk {
 
     }
 
+    @Override
+    public UUID getOriginalId() {
+        return originalId;
+    }
 
     public int getCooldownSeconds() {return cooldownSeconds;}
     public void setCooldownSeconds(int seconds) {
@@ -175,6 +194,18 @@ public class Erasure extends Class implements Quirk {
 
        if(arena.getQuirkBattleGame().getAlivePlayers().contains(uuid)) doErasureCooldown();
        for (UUID uuid : erasingPlayers) {
+            QuirkErasureEvent event = new QuirkErasureEvent(Bukkit.getPlayer(uuid), false);
+            Bukkit.getPluginManager().callEvent(event);
+        }
+        erasingPlayers.clear();
+        player.sendMessage(ChatColor.RED + "Erasure has been deactivated!");
+        player.playSound(player.getLocation(), Sound.ANVIL_LAND, 0.9f, 0.7f);
+    }
+
+    private void stopErasureWithoutCooldown() {
+        isErasing = false;
+
+        for (UUID uuid : erasingPlayers) {
             QuirkErasureEvent event = new QuirkErasureEvent(Bukkit.getPlayer(uuid), false);
             Bukkit.getPluginManager().callEvent(event);
         }
@@ -296,11 +327,15 @@ public class Erasure extends Class implements Quirk {
     public void onSneak(PlayerToggleSneakEvent e) {
         if (arena.getState() != GameState.LIVE) return;
         if (!arena.getQuirkBattleGame().getAlivePlayers().contains(player.getUniqueId())) return;
-        if (e.getPlayer().getUniqueId() != getUUID()) return;
-      //  if (e.isSneaking() && isErasing) {
-        //    stopErasing();
-        //    return;
-       // }
+        if (e.getPlayer().getUniqueId() != uuid) return;
+
+     // TODO: Test case- AFO players can cancel sneak ability by pressing SNEAK after they activate Erasure.
+        if (uuid != originalId) {
+              if (e.isSneaking() && isErasing) {
+                stopErasing();
+                return;
+             }
+        }
 
         if (e.isSneaking() && !isErasing && System.currentTimeMillis() - erasureCooldown >= cooldownTime * 1000L) {
             isErasing = true;
@@ -315,13 +350,46 @@ public class Erasure extends Class implements Quirk {
 
     @EventHandler
     public void onErase(QuirkErasureEvent e) {
-        if (e.getQuirk() != this) return;
+        if (e.getQuirk() != this && e.getPlayer() != this.player) return;
         if (e.isErasing()) {
             isBeingErased = true;
             setSharpenedKnife(false);
             this.hitCount = 0;
         }
-        else isBeingErased = false;
+        else if (uuid == originalId) isBeingErased = false;
     }
 
+    @Override
+    public void steal(Player stealer) {
+        QuirkErasureEvent event = new QuirkErasureEvent(player, true);
+        Bukkit.getPluginManager().callEvent(event);
+        player.sendMessage(HerobrinePVPCore.translateString("&c&lOH NO!&r &7Looks like your Quirk was stolen by &c" + stealer.getName() + "&7!"));
+        this.uuid = stealer.getUniqueId();
+        this.player = stealer;
+        this.stats = arena.getQuirkBattleGame().getStats(stealer);
+        AllForOne afo =  (AllForOne) arena.getClasses().get(stealer.getUniqueId());
+        setCooldownSeconds(0);
+        setErasureCooldown(0);
+        afo.giveAbilitySet(AbilitySets.ERASURE, this);
+
+    }
+
+    @Override
+    public void restore() {
+    stopErasureWithoutCooldown();
+    this.uuid = originalId;
+    this.player = Bukkit.getPlayer(originalId);
+    this.stats = arena.getQuirkBattleGame().getStats(player);
+
+    this.setErasureCooldown(0);
+    this.setSharpenedKnife(false);
+    isBeingErased = false;
+    this.hitCount = 0;
+    this.setCooldownSeconds(0);
+    for (Ability ability : abilities) {
+        ability.setActive(true);
+    }
+    player.sendMessage(ChatColor.GREEN + "Your quirk has been restored!");
+    player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
+    }
 }

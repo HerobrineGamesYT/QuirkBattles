@@ -8,6 +8,7 @@ import net.herobrine.gamecore.Manager;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
+import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Effect;
@@ -35,9 +36,9 @@ public class CaptureAbility extends Ability {
 
     private Player player;
     private final Map<UUID, Boolean> hasHit = new HashMap<>();
-    public CaptureAbility(Abilities ability, Class quirk, int id, int slot) {
+    public CaptureAbility(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
-        this.player = Bukkit.getPlayer(quirk.getUUID());
+        this.player = Bukkit.getPlayer(quirk.getUniqueId());
     }
 
 

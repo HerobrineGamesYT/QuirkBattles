@@ -18,6 +18,7 @@ public class OverheatEvent extends PlayerEvent {
         super(player);
         player.sendMessage(HerobrinePVPCore.translateString("&c&lOUCH! &fYou are overheating!"));
         player.playSound(player.getLocation(), Sound.FIRE, 1f, 1f);
+        GameCoreMain.getInstance().sendTitle(player, "&c&lYOU ARE OVERHEATING!", "&eKeep your temperature balanced!", 0, 2,0);
         GameCoreMain.getInstance().sendActionBar(player, "&c&lYOU ARE OVERHEATING!");
     }
 

@@ -15,7 +15,7 @@ public class PlayerStats {
     private int intelligence;
     private int strength;
     private int lastRegenMana;
-    private final boolean useTemperature;
+    private boolean useTemperature;
     private int baseTemp = 0;
     private int temp = 0;
     private int maxTemp = 0;
@@ -83,6 +83,8 @@ public class PlayerStats {
         this.temp = temp;
         Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));
     }
+
+    public void setUseTemperature(boolean useTemp) {this.useTemperature = useTemp;}
 
     public boolean useTemperature() {
         return useTemperature;

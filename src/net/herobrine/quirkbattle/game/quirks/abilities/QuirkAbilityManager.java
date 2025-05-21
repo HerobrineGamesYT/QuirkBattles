@@ -1,6 +1,9 @@
 package net.herobrine.quirkbattle.game.quirks.abilities;
 
 import net.herobrine.gamecore.Class;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.engine.EngineBoostAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.engine.RapidKickAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.engine.ReciproBurstAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.erasure.CaptureAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.erasure.EyeDropsAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.erasure.SharpenedKnifeAbility;
@@ -22,6 +25,8 @@ import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.AirPropulsionAbi
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.DetroitSmashAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.ShootStyleAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.SwitchAbilitySetTest;
+import net.herobrine.quirkbattle.game.quirks.abilities.villain.afo.StealAbility;
+import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
@@ -49,115 +54,140 @@ public class QuirkAbilityManager {
         return null;
     }
 
-    public Ability registerAbility(Abilities ability, Class quirk, int slot) {
+    public Ability registerAbility(Abilities ability, Quirk quirk, int slot) {
         switch (ability) {
             case DETROIT_SMASH:
                 DetroitSmashAbility smash = new DetroitSmashAbility(ability, quirk, id, slot);
                 abilities.add(smash);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, smash.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, smash.getItem());
                 return smash;
             case SHOOT_STYLE:
                 ShootStyleAbility shoot = new ShootStyleAbility(ability, quirk, id, slot);
                 abilities.add(shoot);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, shoot.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, shoot.getItem());
                 return shoot;
             case AIR_PROPULSION:
                 AirPropulsionAbility air = new AirPropulsionAbility(ability, quirk, id, slot);
                 abilities.add(air);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, air.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, air.getItem());
                 return air;
             case EXPLOSION_DASH:
                 ExplosionDashAbility dash = new ExplosionDashAbility(ability, quirk, id, slot);
                 abilities.add(dash);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, dash.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, dash.getItem());
                 return dash;
             case EXPLOSION_PUNCH:
                 ExplosionPunchAbility punch = new ExplosionPunchAbility(ability, quirk, id, slot);
                 abilities.add(punch);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, punch.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, punch.getItem());
                 return punch;
             case HOWITZER_IMPACT:
                 HowitzerImpactAbility howitzer = new HowitzerImpactAbility(ability, quirk, id, slot);
                 abilities.add(howitzer);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, howitzer.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, howitzer.getItem());
                 return howitzer;
             case SHARP_CLAW:
                 SharpClawAbility claw = new SharpClawAbility(ability, quirk, id, slot);
                 abilities.add(claw);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, claw.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, claw.getItem());
                 return claw;
             case STONE_CHARGE:
                 StoneChargeAbility stone = new StoneChargeAbility(ability, quirk, id, slot);
                 abilities.add(stone);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, stone.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, stone.getItem());
                 return stone;
             case UNBREAKABLE:
                 UnbreakableAbility unbreakable = new UnbreakableAbility(ability, quirk, id, slot);
                 abilities.add(unbreakable);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, unbreakable.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, unbreakable.getItem());
                 return unbreakable;
             case OFA_ABILITY_SWITCH_TEST:
                 SwitchAbilitySetTest switchTest = new SwitchAbilitySetTest(ability, quirk, id, slot);
                 abilities.add(switchTest);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, switchTest.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, switchTest.getItem());
                 return switchTest;
             case ICE_ABILITY_TEST:
                 IceAbilityTest iceTest = new IceAbilityTest(ability, quirk, id, slot);
                 abilities.add(iceTest);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, iceTest.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, iceTest.getItem());
                 return iceTest;
             case FIRE_ABILITY_TEST:
                 FireAbilityTest fireTest = new FireAbilityTest(ability, quirk, id, slot);
                 abilities.add(fireTest);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, fireTest.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, fireTest.getItem());
                 return fireTest;
             case ICE_WALL:
                 IceWallAbility wall = new IceWallAbility(ability, quirk, id, slot);
                 abilities.add(wall);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, wall.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, wall.getItem());
                 return wall;
             case FIRE_WALL:
                 FireWallAbility fireWall = new FireWallAbility(ability, quirk, id, slot);
                 abilities.add(fireWall);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, fireWall.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, fireWall.getItem());
                 return fireWall;
             case ICE_SHARD:
                 IceShardAbility iceShard = new IceShardAbility(ability, quirk, id, slot);
                 abilities.add(iceShard);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, iceShard.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, iceShard.getItem());
                 return iceShard;
             case FLASHFIRE_FIST:
                 FlashfireFistAbility fist = new FlashfireFistAbility(ability, quirk, id, slot);
                 abilities.add(fist);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, fist.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, fist.getItem());
                 return fist;
             case GLACIER:
                 GlacierAbility glacier = new GlacierAbility(ability, quirk, id, slot);
                 abilities.add(glacier);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, glacier.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, glacier.getItem());
                 return glacier;
             case FLAME_OVERDRIVE:
                 OverdriveAbility overdriveAbility = new OverdriveAbility(ability, quirk, id, slot);
                 abilities.add(overdriveAbility);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, overdriveAbility.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, overdriveAbility.getItem());
                 return overdriveAbility;
             case CAPTURE:
                 CaptureAbility capture = new CaptureAbility(ability, quirk, id, slot);
                 abilities.add(capture);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, capture.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, capture.getItem());
                 return capture;
             case SHARPENED_KNIFE:
                 SharpenedKnifeAbility knife = new SharpenedKnifeAbility(ability, quirk, id, slot);
                 abilities.add(knife);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, knife.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, knife.getItem());
                 return knife;
             case EYEDROPS:
                 EyeDropsAbility drops = new EyeDropsAbility(ability, quirk, id, slot);
                 abilities.add(drops);
-                Bukkit.getPlayer(quirk.getUUID()).getInventory().setItem(slot, drops.getItem());
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, drops.getItem());
                 return drops;
+            case ENGINE_BOOST:
+                EngineBoostAbility boost = new EngineBoostAbility(ability, quirk, id, slot);
+                abilities.add(boost);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, boost.getItem());
+                return boost;
+            case RECIPRO_BURST:
+                ReciproBurstAbility reciproBurst = new ReciproBurstAbility(ability, quirk, id, slot);
+                abilities.add(reciproBurst);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, reciproBurst.getItem());
+                return reciproBurst;
+            case RAPID_KICK:
+                RapidKickAbility rapidKick = new RapidKickAbility(ability, quirk, id, slot);
+                abilities.add(rapidKick);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, rapidKick.getItem());
+                return rapidKick;
+            case STEAL:
+                StealAbility steal = new StealAbility(ability, quirk, id, slot);
+                abilities.add(steal);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, steal.getItem());
+                return steal;
             default:
                 return null;
         }
+    }
+
+    public void unregisterAbility(Ability ability) {
+        ability.setActive(false);
+        abilities.remove(ability);
     }
 }

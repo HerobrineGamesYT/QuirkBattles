@@ -7,6 +7,7 @@ import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
+import net.herobrine.quirkbattle.util.Quirk;
 import net.minecraft.server.v1_8_R3.EnumParticle;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -34,13 +35,13 @@ import java.util.UUID;
 import java.util.function.Predicate;
 
 public class FireWallAbility extends Ability {
-    private final Player player = Bukkit.getPlayer(quirk.getUUID());
+    private final Player player = Bukkit.getPlayer(quirk.getUniqueId());
     private final List<ArmorStand> standLocations = new ArrayList<>();
     private final Map<UUID, Boolean> hasHit = new HashMap<>();
 
 
 
-    public FireWallAbility(Abilities ability, Class quirk, int id, int slot) { super(ability, quirk, id, slot); }
+    public FireWallAbility(Abilities ability, Quirk quirk, int id, int slot) { super(ability, quirk, id, slot); }
 
     @Override
     public void doAbility(Player player) {

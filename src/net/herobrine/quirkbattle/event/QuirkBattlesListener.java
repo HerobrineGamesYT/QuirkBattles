@@ -12,27 +12,36 @@ import net.herobrine.gamecore.Manager;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
+import net.herobrine.quirkbattle.game.quirks.hero.Engine;
 import net.herobrine.quirkbattle.game.quirks.hero.Explosion;
 import net.herobrine.quirkbattle.game.quirks.hero.Hardening;
 import net.herobrine.quirkbattle.game.quirks.hero.OneForAll;
+import net.herobrine.quirkbattle.game.quirks.villain.AllForOne;
 import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.omg.SendingContext.RunTime;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -119,11 +128,18 @@ public class QuirkBattlesListener implements Listener {
             if (arena.getGame().equals(Games.QUIRK_BATTTLE) && arena.getState().equals(GameState.LIVE)) {
                 Class kit = arena.getClasses().get(player.getUniqueId());
                 Quirk quirk = (Quirk) kit;
+
+                boolean canUseAbilityAttackOnTarget = quirk.getUniqueId() != target.getUniqueId();
+                if (kit.getClassType().equals(ClassTypes.ALL_FOR_ONE)) {
+                    AllForOne afo = (AllForOne) quirk;
+                    if (afo.getStolenQuirk() != null) quirk = afo.getStolenQuirk();
+                }
+
                 event.setCancelled(true);
                 if (!arena.getType().isTeamsMode()) {
                     event.setDamage(0);
                     double damage = arena.getClass(player).getBaseDamage();
-                    if (quirk.shouldUseAbilityAttack()) {
+                    if (quirk.shouldUseAbilityAttack() && canUseAbilityAttackOnTarget) {
                         quirk.useAbilityAttack(target);
                         return;
                     }
@@ -132,9 +148,13 @@ public class QuirkBattlesListener implements Listener {
                         damage = damage + (arena.getClass(player).getBaseDamage() * ((double) arena.getQuirkBattleGame().getStats(player).getMana() / 100));
                         OneForAll ofa = (OneForAll) arena.getClasses().get(player.getUniqueId());
                         ofa.resetPower();
-                    } else if (arena.getClass(player).equals(ClassTypes.EXPLOSION)) {
-                        Explosion explosion = (Explosion) arena.getClasses().get(player.getUniqueId());
+                    } else if (quirk instanceof Explosion) {
+                        Explosion explosion = (Explosion) quirk;
                         explosion.giveStaminaBoost(2);
+                    }
+                    else if (quirk instanceof Engine) {
+                        Engine engine = (Engine) quirk;
+                        engine.changeTemp(-2);
                     }
                     @SuppressWarnings("deprecation") EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, damage);
                     arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.GENERAL_ATTACK);
@@ -145,7 +165,7 @@ public class QuirkBattlesListener implements Listener {
                     if (arena.getTeam(player) != arena.getTeam(target)) {
                         event.setDamage(0);
                         double damage = arena.getClass(player).getBaseDamage();
-                        if (quirk.shouldUseAbilityAttack()) {
+                        if (quirk.shouldUseAbilityAttack() && canUseAbilityAttackOnTarget) {
                             quirk.useAbilityAttack(target);
                             return;
                         }
@@ -153,9 +173,13 @@ public class QuirkBattlesListener implements Listener {
                             damage = damage + (arena.getClass(player).getBaseDamage() * ((double) arena.getQuirkBattleGame().getStats(player).getMana() / 100));
                             OneForAll ofa = (OneForAll) arena.getClasses().get(player.getUniqueId());
                             ofa.resetPower();
-                        } else if (arena.getClass(player).equals(ClassTypes.EXPLOSION)) {
-                            Explosion explosion = (Explosion) arena.getClasses().get(player.getUniqueId());
+                        } else if (quirk instanceof Explosion) {
+                            Explosion explosion = (Explosion) quirk;
                             explosion.giveStaminaBoost(2);
+                        }
+                        else if (quirk instanceof Engine) {
+                            Engine engine = (Engine) quirk;
+                            engine.changeTemp(-2);
                         }
                         @SuppressWarnings("deprecation") EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, damage);
                         arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.GENERAL_ATTACK);
@@ -306,6 +330,21 @@ public class QuirkBattlesListener implements Listener {
     }
 
     @EventHandler
+    public void onEntityDeath(EntityDeathEvent event) {
+        if (event.getEntity() instanceof ArmorStand) {
+            try {
+                Bukkit.broadcastMessage("HEY THIS WORKS!");
+                throw new RuntimeException();
+            }
+            catch(RuntimeException e) {
+                Bukkit.broadcastMessage("Debug - ArmorStand was killed by: " + (event.getEntity().getLastDamageCause() != null ? event.getEntity().getLastDamageCause().getCause() : "unknown cause"));
+                e.printStackTrace();
+            }
+
+
+        }
+    }
+    @EventHandler
     public void onInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         if (!Manager.isPlaying(player)) return;
@@ -322,6 +361,17 @@ public class QuirkBattlesListener implements Listener {
         }
     }
 
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onSpawn(CreatureSpawnEvent e) {
+        if (!e.getEntityType().equals(EntityType.ARMOR_STAND)) return;
+        World world = e.getEntity().getWorld();
+    if (Manager.getArena(world) != null) {
+        Arena arena = Manager.getArena(world);
+        if (!arena.getGame().equals(Games.QUIRK_BATTTLE)) return;
+        e.setCancelled(false);
+    }
+    }
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
         if (Manager.isPlaying(event.getEntity())) {

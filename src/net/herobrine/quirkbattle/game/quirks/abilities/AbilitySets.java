@@ -6,11 +6,11 @@ public enum AbilitySets {
     ONE_FOR_ALL(new Abilities[]{Abilities.DETROIT_SMASH, Abilities.SHOOT_STYLE, Abilities.AIR_PROPULSION}, false, 0),
     EXPLOSION(new Abilities[]{Abilities.EXPLOSION_DASH, Abilities.EXPLOSION_PUNCH, Abilities.HOWITZER_IMPACT}, false, 0),
     HARDENING(new Abilities[]{Abilities.SHARP_CLAW, Abilities.STONE_CHARGE, Abilities.UNBREAKABLE}, false, 0),
-    ALL_FOR_ONE(new Abilities[]{}, false, 0),
+    ALL_FOR_ONE(new Abilities[]{Abilities.STEAL}, false, 0),
     ZEROGRAVITY(new Abilities[]{}, false, 0),
     ERASURE(new Abilities[]{Abilities.CAPTURE, Abilities.SHARPENED_KNIFE, Abilities.EYEDROPS}, false, 0),
     PERMEATION(new Abilities[]{}, false, 0),
-    ENGINE(new Abilities[]{}, false, 0),
+    ENGINE(new Abilities[]{Abilities.ENGINE_BOOST, Abilities.RECIPRO_BURST, Abilities.RAPID_KICK}, true, -6),
     OFA_SWITCH_TEST(new Abilities[]{Abilities.AIR_PROPULSION, Abilities.DETROIT_SMASH, Abilities.SHOOT_STYLE}, false, 0);
 
 

@@ -19,6 +19,7 @@ public class FrostbiteEvent extends PlayerEvent {
     public FrostbiteEvent(Player player) {
         super(player);
         player.sendMessage(HerobrinePVPCore.translateString("&b&lBRR! &fYou're too cold!"));
+        GameCoreMain.getInstance().sendTitle(player, "&b&lYOU ARE FROZEN!", "&eKeep your temperature balanced!", 0, 2,0);
         player.playSound(player.getLocation(), Sound.GLASS, 1f, 1f);
         GameCoreMain.getInstance().sendActionBar(player, "&b&lYOU ARE FROZEN!");
     }

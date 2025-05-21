@@ -12,7 +12,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.logging.Level;
 
 public class QuirkBattlesPlugin extends JavaPlugin {
-    public static QuirkBattlesPlugin instance;
+    private static QuirkBattlesPlugin instance;
 
     @Override
     public void onEnable() {
@@ -34,12 +34,12 @@ public class QuirkBattlesPlugin extends JavaPlugin {
         return instance;
     }
 
-    public GameCoreMain getGameCoreAPI() {
+    private GameCoreMain getGameCoreAPI() {
         Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin("GameCore");
         return plugin instanceof GameCoreMain ? (GameCoreMain) plugin : null;
     }
 
-    public HerobrinePVPCore getCustomAPI() {
+    private HerobrinePVPCore getCustomAPI() {
         Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin("HBPVP-Core");
         return plugin instanceof HerobrinePVPCore ? (HerobrinePVPCore) plugin : null;
     }

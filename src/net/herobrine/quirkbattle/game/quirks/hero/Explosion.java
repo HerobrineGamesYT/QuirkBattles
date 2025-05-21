@@ -13,12 +13,11 @@ import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.abilities.AbilitySets;
+import net.herobrine.quirkbattle.game.quirks.abilities.Stealable;
+import net.herobrine.quirkbattle.game.quirks.villain.AllForOne;
 import net.herobrine.quirkbattle.game.stats.PlayerStats;
 import net.herobrine.quirkbattle.util.Quirk;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -32,11 +31,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class Explosion extends Class implements Quirk {
+public class Explosion extends Class implements Quirk, Stealable {
     private final List<Ability> abilities;
     private PlayerStats stats;
     private final Arena arena;
-    private final Player player;
+    private Player player;
+    private final UUID originalId;
 
     private boolean explosivePunch = false;
 
@@ -46,6 +46,7 @@ public class Explosion extends Class implements Quirk {
         super(uuid, ClassTypes.EXPLOSION);
         arena = Manager.getArena(Bukkit.getPlayer(uuid));
         player = Bukkit.getPlayer(uuid);
+        this.originalId = uuid;
         this.abilities = new ArrayList<>();
     }
 
@@ -204,6 +205,15 @@ public class Explosion extends Class implements Quirk {
     }
 
     @Override
+    public UUID getUniqueId() {
+        return uuid;
+    }
+    @Override
+    public UUID getOriginalId() {
+        return originalId;
+    }
+
+    @Override
     public void useAbilityAttack(Player target) {
         explodeForPunch(target.getLocation());
     }
@@ -223,5 +233,32 @@ public class Explosion extends Class implements Quirk {
         }
         else isBeingErased = false;
 
+    }
+
+    @Override
+    public void steal(Player stealer) {
+        QuirkErasureEvent event = new QuirkErasureEvent(player, true);
+        Bukkit.getPluginManager().callEvent(event);
+        player.sendMessage(HerobrinePVPCore.translateString("&c&lOH NO!&r &7Looks like your Quirk was stolen by &c" + stealer.getName() + "&7!"));
+        this.uuid = stealer.getUniqueId();
+        this.player = stealer;
+        this.stats = arena.getQuirkBattleGame().getStats(stealer);
+        this.setExplosivePunch(false);
+        AllForOne afo = (AllForOne) arena.getClasses().get(stealer.getUniqueId());
+        afo.giveAbilitySet(AbilitySets.EXPLOSION, this);
+    }
+
+    @Override
+    public void restore() {
+        this.uuid = getOriginalId();
+        this.player = Bukkit.getPlayer(getOriginalId());
+        this.stats = arena.getQuirkBattleGame().getPlayerStatsMap().get(getOriginalId());
+        this.setExplosivePunch(false);
+        for (Ability ability : abilities) {
+            ability.setActive(true);
+        }
+        isBeingErased = false;
+        player.sendMessage(ChatColor.GREEN + "Your quirk has been restored!");
+        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
     }
 }

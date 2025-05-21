@@ -10,6 +10,7 @@ import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.abilities.SpecialCase;
 import net.herobrine.quirkbattle.game.quirks.hero.IcyHot;
+import net.herobrine.quirkbattle.util.Quirk;
 import net.minecraft.server.v1_8_R3.EnumParticle;
 import net.minecraft.server.v1_8_R3.PacketPlayOutWorldParticles;
 import org.bukkit.Bukkit;
@@ -36,7 +37,7 @@ public class OverdriveAbility extends Ability implements SpecialCase {
 
     private final Map<UUID, Long> hasHit = new HashMap<>();
 
-    public OverdriveAbility(Abilities ability, Class quirk, int id, int slot) {
+    public OverdriveAbility(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
         this.icy = (IcyHot) quirk;
     }
@@ -90,7 +91,7 @@ public class OverdriveAbility extends Ability implements SpecialCase {
                 for (double t = 0; t < 1000; t += 0.5) {
                     float x = radius * (float) Math.sin(t);
                     float z = radius * (float) Math.cos(t);
-                    spawnRGBParticles(new Location(loc.getWorld(), loc.getX() + x, loc.getY() + addToY, loc.getZ() + z), 10, 128, 128, false);
+                    spawnRGBParticles(new Location(loc.getWorld(), loc.getX() + x, loc.getY() + addToY, loc.getZ() + z), 179, 67, 27, false);
                 }
 
 
@@ -212,7 +213,7 @@ public class OverdriveAbility extends Ability implements SpecialCase {
     }
     public void stopOverdriveNoCooldown() {
         icy.setOverdriveOn(false);
-        if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.RED + " is no longer using their " + HerobrinePVPCore.translateString("&c&lOVERDRIVE&r&c ability."));
+        if (!arena.getType().isTeamsMode()) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.RED + " is no longer using their " + HerobrinePVPCore.translateString("&c&lOVERDRIVE&r&c ability."));
         else arena.sendMessage(arena.getTeam(player).getColor() + player.getName() + ChatColor.RED + " is no longer using their " + HerobrinePVPCore.translateString("&c&lOVERDRIVE&r&c ability."));
     }
 
@@ -220,7 +221,7 @@ public class OverdriveAbility extends Ability implements SpecialCase {
         icy.setOverdriveOn(false);
         setCooldown(System.currentTimeMillis());
         doAbilityCooldown();
-        if (arena.getType().equals(GameType.ONE_V_ONE)) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.RED + " is no longer using their " + HerobrinePVPCore.translateString("&c&lOVERDRIVE&r&c ability."));
+        if (!arena.getType().isTeamsMode()) arena.sendMessage(HerobrinePVPCore.getFileManager().getRank(player).getColor() + player.getName() + ChatColor.RED + " is no longer using their " + HerobrinePVPCore.translateString("&c&lOVERDRIVE&r&c ability."));
         else arena.sendMessage(arena.getTeam(player).getColor() + player.getName() + ChatColor.RED + " is no longer using their " + HerobrinePVPCore.translateString("&c&lOVERDRIVE&r&c ability."));
     }
 }
