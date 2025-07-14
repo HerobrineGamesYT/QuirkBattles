@@ -69,6 +69,11 @@ public class GlacierAbility extends Ability implements SpecialCase {
                     return;
                 }
 
+                if (!isActive()) {
+                    cancel();
+                    return;
+                }
+
 
                 for (Entity entity : player.getNearbyEntities(ability.getRadius(), ability.getRadius(), ability.getRadius())) {
                     if (!(entity instanceof Player)) continue;
@@ -112,6 +117,11 @@ public class GlacierAbility extends Ability implements SpecialCase {
                 }
 
                 if (!icy.isGlacierOn()) {
+                    cancel();
+                    return;
+                }
+
+                if (!isActive()) {
                     cancel();
                     return;
                 }

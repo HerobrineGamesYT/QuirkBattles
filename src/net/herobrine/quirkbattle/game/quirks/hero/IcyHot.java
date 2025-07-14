@@ -338,6 +338,11 @@ public class IcyHot extends Class implements Quirk, Switchable, Stealable {
                     cancel();
                     return;
                 }
+
+                if (uuid != originalId) {
+                    cancel();
+                    return;
+                }
                 if (stats.getTemp() == stats.getBaseTemp()) {
                     cancel();
                     isStunned = false;
@@ -409,10 +414,8 @@ public class IcyHot extends Class implements Quirk, Switchable, Stealable {
         setFireFist(false);
 
         stats.setTemp(stats.getBaseTemp());
+        isStunned = false;
 
-        QuirkErasureEvent event = new QuirkErasureEvent(player, true);
-        Bukkit.getPluginManager().callEvent(event);
-        player.sendMessage(HerobrinePVPCore.translateString("&c&lOH NO!&r &7Looks like your Quirk was stolen by &c" + stealer.getName() + "&7!"));
         this.uuid = stealer.getUniqueId();
         this.player = stealer;
         this.stats = arena.getQuirkBattleGame().getStats(stealer);
@@ -446,13 +449,8 @@ public class IcyHot extends Class implements Quirk, Switchable, Stealable {
         this.player = Bukkit.getPlayer(getOriginalId());
         this.stats = arena.getQuirkBattleGame().getPlayerStatsMap().get(getOriginalId());
 
-        for (Ability ability : abilities) {
-            ability.setActive(true);
-        }
-        isBeingErased = false;
-        SwitchAbilitySetTest switcher = (SwitchAbilitySetTest) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.OFA_ABILITY_SWITCH_TEST);
-        switcher.setActive(true);
-        player.sendMessage(ChatColor.GREEN + "Your quirk has been restored!");
-        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
+        QuirkErasureEvent event = new QuirkErasureEvent(player, false);
+        Bukkit.getServer().getPluginManager().callEvent(event);
+
     }
 }

@@ -1,5 +1,6 @@
 package net.herobrine.quirkbattle.game.quirks.abilities;
 
+import net.herobrine.core.HerobrinePVPCore;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
@@ -53,12 +54,16 @@ public enum Abilities {
             Material.LAVA_BUCKET, 0, 0, 90, 0,0,40000,3,6,false,true,true),
     ENGINE_BOOST(ChatColor.YELLOW + "Boost", new String[] {"Rev up your engines and gain a speed boost for 4s.", "You can stack your boosts up to 3 times!", ChatColor.RED + "Warning: " + ChatColor.GRAY + "+5 Temperature per second, per boost active!", "Use sneak to cancel all active boosts."},
             Material.BLAZE_POWDER, 0,20,0,0,0,0,0,0,false,true,true),
-    RECIPRO_BURST(ChatColor.GOLD + "Recipro Burst", new String[] {"Time to go full throttle!", "Use this ability to go Max Speed for 10 seconds. Travel so fast, that you leave a trail of fire", "that will burn any enemies in its path!", "Sneak to cancel this ability before you overheat!"},
+    RECIPRO_BURST(ChatColor.GOLD + "Recipro Burst", new String[] {"Time to go full throttle!", "Use this ability to go Max Speed for 10 seconds.", "Travel so fast, that you leave a trail of fire", "that will burn any enemies in its path!", "Sneak to cancel this ability before you overheat!"},
             Material.MINECART, 0, 50, 0,0,0,17000, 1.2, 6, false, true, true),
     RAPID_KICK(ChatColor.GREEN + "Rapid Kick", new String[] {"Quickly kick to the left and right!", "Depending on how fast your engine is,", "the faster it is between both of your kicks."},
             Material.BLAZE_ROD, 0, 15, 0, 0, 0, 8000, 1.2, 30, false, false, false),
     STEAL(ChatColor.RED + "Steal", new String[] {"The most dangerous ability yet...", "Once activated, the next player you attack will have their Quirk", "stolen for the next 20 seconds!"},
-            Material.BLAZE_POWDER, 0, 0, 0, 0, 0, 20000, 0, 0, false, true, true);
+            Material.BLAZE_POWDER, 0, 0, 0, 0, 0, 20000, 0, 0, false, true, true),
+    TENDRIL(ChatColor.RED + "Tendrils", new String[] {"Shoot out evil-looking Tendrils that will", "pull enemies and deal massive damage!", "you can also attach them to teammates to", "activate " + HerobrinePVPCore.translateString("&e&lForcible Quirk Activation&r&7.")},
+            Material.FISHING_ROD, 0, 0, 0, 0, 0, 3000, 0, 30, false, true, false),
+    AIR_CANNON(ChatColor.RED + "Air Cannon", new String[] {"Shoot out a powerful blast of air that will", "knock back and damage anyone in its radius!"}, Material.FEATHER, 0, 0,
+            0,0,0,6000,0.8,20,false,false,false);
 
 
 

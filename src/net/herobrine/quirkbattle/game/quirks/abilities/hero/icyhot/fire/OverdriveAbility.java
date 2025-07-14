@@ -81,6 +81,11 @@ public class OverdriveAbility extends Ability implements SpecialCase {
                     return;
                 }
 
+                if (!isActive()) {
+                    cancel();
+                    return;
+                }
+
                 if (!arena.getQuirkBattleGame().getAlivePlayers().contains(player.getUniqueId())) {
                     cancel();
                     return;
@@ -148,6 +153,11 @@ public class OverdriveAbility extends Ability implements SpecialCase {
                 }
 
                 if (!icy.isOverdriveOn()) {
+                    cancel();
+                    return;
+                }
+
+                if (!isActive()) {
                     cancel();
                     return;
                 }

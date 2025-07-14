@@ -25,7 +25,9 @@ import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.AirPropulsionAbi
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.DetroitSmashAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.ShootStyleAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.SwitchAbilitySetTest;
+import net.herobrine.quirkbattle.game.quirks.abilities.villain.afo.AirCannonAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.villain.afo.StealAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.villain.afo.TendrilAbility;
 import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.Bukkit;
 
@@ -42,6 +44,8 @@ public class QuirkAbilityManager {
 
     public void unregisterAbilities() {
         for (Ability ability : abilities) {
+            ability.setActive(false);
+            ability.getQuirk().getAbilities().clear();
             ability.remove();
         }
         abilities.clear();
@@ -181,6 +185,16 @@ public class QuirkAbilityManager {
                 abilities.add(steal);
                 Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, steal.getItem());
                 return steal;
+            case TENDRIL:
+                TendrilAbility tendrils = new TendrilAbility(ability, quirk, id, slot);
+                abilities.add(tendrils);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, tendrils.getItem());
+                return tendrils;
+            case AIR_CANNON:
+                AirCannonAbility airCannon = new AirCannonAbility(ability, quirk, id, slot);
+                abilities.add(airCannon);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, airCannon.getItem());
+                return airCannon;
             default:
                 return null;
         }

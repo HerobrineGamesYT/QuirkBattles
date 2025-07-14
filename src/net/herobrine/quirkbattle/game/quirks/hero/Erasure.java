@@ -361,9 +361,6 @@ public class Erasure extends Class implements Quirk, Stealable {
 
     @Override
     public void steal(Player stealer) {
-        QuirkErasureEvent event = new QuirkErasureEvent(player, true);
-        Bukkit.getPluginManager().callEvent(event);
-        player.sendMessage(HerobrinePVPCore.translateString("&c&lOH NO!&r &7Looks like your Quirk was stolen by &c" + stealer.getName() + "&7!"));
         this.uuid = stealer.getUniqueId();
         this.player = stealer;
         this.stats = arena.getQuirkBattleGame().getStats(stealer);
@@ -376,20 +373,18 @@ public class Erasure extends Class implements Quirk, Stealable {
 
     @Override
     public void restore() {
-    stopErasureWithoutCooldown();
-    this.uuid = originalId;
-    this.player = Bukkit.getPlayer(originalId);
-    this.stats = arena.getQuirkBattleGame().getStats(player);
+        stopErasureWithoutCooldown();
+        this.uuid = originalId;
+        this.player = Bukkit.getPlayer(originalId);
+        this.stats = arena.getQuirkBattleGame().getStats(player);
 
-    this.setErasureCooldown(0);
-    this.setSharpenedKnife(false);
-    isBeingErased = false;
-    this.hitCount = 0;
-    this.setCooldownSeconds(0);
-    for (Ability ability : abilities) {
-        ability.setActive(true);
-    }
-    player.sendMessage(ChatColor.GREEN + "Your quirk has been restored!");
-    player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
+        this.setErasureCooldown(0);
+        this.setSharpenedKnife(false);
+
+        this.hitCount = 0;
+        this.setCooldownSeconds(0);
+
+    QuirkErasureEvent event = new QuirkErasureEvent(player, false);
+    Bukkit.getServer().getPluginManager().callEvent(event);
     }
 }

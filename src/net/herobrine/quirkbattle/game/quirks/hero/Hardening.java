@@ -216,9 +216,6 @@ public class Hardening extends Class implements Quirk, Stealable {
 
     @Override
     public void steal(Player stealer) {
-        QuirkErasureEvent event = new QuirkErasureEvent(player, true);
-        Bukkit.getPluginManager().callEvent(event);
-        player.sendMessage(HerobrinePVPCore.translateString("&c&lOH NO!&r &7Looks like your Quirk was stolen by &c" + stealer.getName() + "&7!"));
         this.uuid = stealer.getUniqueId();
         this.player = stealer;
         this.stats = arena.getQuirkBattleGame().getStats(stealer);
@@ -244,12 +241,5 @@ public class Hardening extends Class implements Quirk, Stealable {
         this.stats = arena.getQuirkBattleGame().getPlayerStatsMap().get(getOriginalId());
         this.setSharpClaw(false);
         this.hitCount = 0;
-
-        for (Ability ability : abilities) {
-            ability.setActive(true);
-        }
-        isBeingErased = false;
-        player.sendMessage(ChatColor.GREEN + "Your quirk has been restored!");
-        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
     }
 }

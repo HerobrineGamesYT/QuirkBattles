@@ -5,6 +5,7 @@ import net.herobrine.gamecore.*;
 import net.herobrine.gamecore.Class;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.event.QuirkErasureEvent;
+import net.herobrine.quirkbattle.event.QuirkStealEvent;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.abilities.AbilitySets;
@@ -19,6 +20,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -38,6 +40,7 @@ public class AllForOne extends Class implements Quirk, Switchable {
     private AbilitySets[] availableSets;
     private boolean isBeingErased = false;
     private boolean shouldSteal = false;
+    private boolean flyingCooldownTimer = false;
     private final List<Ability> abilities;
     private Stealable stolenQuirk;
 
@@ -63,6 +66,7 @@ public class AllForOne extends Class implements Quirk, Switchable {
         registerAbilities(AbilitySets.ALL_FOR_ONE);
 
         player.getInventory().setHeldItemSlot(0);
+        player.setAllowFlight(true);
     }
 
     @Override
@@ -99,7 +103,8 @@ public class AllForOne extends Class implements Quirk, Switchable {
         return;
     }
     shouldSteal = false;
-    ((Stealable) quirk).steal(player);
+    QuirkStealEvent event = new QuirkStealEvent(target, player, true);
+    Bukkit.getServer().getPluginManager().callEvent(event);
     player.sendMessage(ChatColor.GREEN + "You have stolen " + target.getName() + "'s quirk: " + arena.getClass(target.getUniqueId()).getDisplay());
     player.playSound(player.getLocation(), Sound.PISTON_EXTEND, .8f, .8f);
     new BukkitRunnable() {
@@ -228,6 +233,44 @@ public class AllForOne extends Class implements Quirk, Switchable {
             isBeingErased = false;
             SwitchAbilitySetTest switcher = (SwitchAbilitySetTest) arena.getQuirkBattleGame().getAbilityManager().getAbilityFromQuirk(this, Abilities.OFA_ABILITY_SWITCH_TEST);
             switcher.setActive(true);
+        }
+    }
+
+    @EventHandler
+    public void onFlightToggle(PlayerToggleFlightEvent e) {
+        if (e.getPlayer() != player) return;
+        if (e.isFlying() && !flyingCooldownTimer) {
+            flyingCooldownTimer = true;
+            player.setFlying(true);
+            player.setFlySpeed(.03f);
+            new BukkitRunnable() {
+                int seconds = 20;
+                @Override
+                public void run() {
+                if (arena.getState() != GameState.LIVE) {
+                    cancel();
+                    return;
+                }
+                player.setLevel(seconds);
+
+                if (seconds == 20){
+                    player.setAllowFlight(false);
+                    player.setFlying(false);
+                    player.sendMessage(ChatColor.RED + "Your float ability is now on cooldown!");
+                    player.playSound(player.getLocation(), Sound.ENDERMAN_TELEPORT, .7f, 1.3f);
+                    flyingCooldownTimer = false;
+                }
+                if (seconds == 0) {
+                    cancel();
+                    player.setAllowFlight(true);
+                    player.sendMessage(ChatColor.GREEN + "Your float ability is recharged!");
+                    player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
+                    return;
+                }
+
+                seconds--;
+                }
+            }.runTaskTimer(QuirkBattlesPlugin.getInstance(), 300L, 20L);
         }
     }
 }

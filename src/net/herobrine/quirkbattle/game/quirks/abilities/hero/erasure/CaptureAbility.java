@@ -48,8 +48,8 @@ public class CaptureAbility extends Ability {
     }
 
 
-    public void doCollision(ArmorStand stand) {
-    for (Entity ent : stand.getNearbyEntities(.7, 1, .7)) {
+    public void doCollision(Location loc) {
+    for (Entity ent : loc.getWorld().getNearbyEntities(loc, .7,1,.7)) {
         if (!(ent instanceof Player)) continue;
         Player target = (Player) ent;
         if (arena.getSpectators().contains(target.getUniqueId())) continue;
@@ -71,10 +71,10 @@ public class CaptureAbility extends Ability {
         PotionEffect banditSpeed = PotionEffectType.SLOW.createEffect(120,
                 4);
         target.addPotionEffect(banditSpeed);
+        player.playSound(player.getLocation(), Sound.DOOR_CLOSE, 1f, 1.9f);
         player.sendMessage(ChatColor.AQUA + "You captured " + target.getName() + "!");
         target.sendMessage(ChatColor.RED + "You have been captured by " + player.getName() + "!");
     }
-    stand.remove();
     }
 
     public void doFX() {
@@ -91,29 +91,20 @@ public class CaptureAbility extends Ability {
                 loc.add(x, y, z);
                 if (!isActive()) {
                     hasHit.clear();
-                    removeArmorStands(player);
                     this.cancel();
                     return;
                 }
                 if (loc.getBlock().getType() != Material.AIR) {
                     hasHit.clear();
-                    removeArmorStands(player);
                     this.cancel();
                     Vector direction = loc.toVector().subtract(player.getLocation().toVector()).normalize();
                     direction.multiply(2);
                     player.setVelocity(direction);
                     player.sendMessage(ChatColor.GREEN + "You've pulled yourself!");
+                    player.playSound(player.getLocation(), Sound.DOOR_OPEN, 1f, 1.9f);
 
                 } else {
-                    ArmorStand stand = (ArmorStand) player.getWorld().spawnEntity(loc,
-                            EntityType.ARMOR_STAND);
-                    stand.setCustomName(player.getName());
-                    stand.setCustomNameVisible(false);
-                    stand.setVisible(false);
-                    stand.setMaxHealth(100);
-                    stand.setHealth(100);
-                    stand.setMarker(true);
-                    doCollision(stand);
+                    doCollision(loc);
 
                     //Doing it twice to make the effect thicker.
                     spawnRGBParticles(loc, 0, 240, 232, true);
@@ -124,17 +115,11 @@ public class CaptureAbility extends Ability {
 
                 if (t > 15) {
                     hasHit.clear();
-                    removeArmorStands(player);
                     this.cancel();
                 }
             }
         }.runTaskTimer(QuirkBattlesPlugin.getInstance(), 0,1L);
     }
 
-    public void removeArmorStands(Player player) {
-        for (Entity ent : arena.getSpawn().getWorld().getEntities()) {
-            if (ent instanceof ArmorStand) {if (ent.getCustomName().equals(player.getName())) ent.remove();}
-        }
-    }
 }
 
