@@ -81,13 +81,10 @@ public class ReciproBurstAbility extends Ability implements SpecialCase {
         if (arena.getType().isTeamsMode()){
             if (arena.getTeam(player).equals(arena.getTeam(caster))) continue;
         }
-        EntityDamageEvent dmg = new EntityDamageEvent(player, EntityDamageEvent.DamageCause.CUSTOM, ability.getDamage());
-        arena.getQuirkBattleGame().getCustomDeathCause().put(player.getUniqueId(), CustomDeathCause.RECIPRO_BURST);
-        arena.getQuirkBattleGame().getLastAbilityAttacker().put(player.getUniqueId(), player.getUniqueId());
+        doDamageTo(caster, player, ability.getDamage(), CustomDeathCause.RECIPRO_BURST);
+
         player.playSound(player.getLocation(), Sound.FIZZ, 1f, 1f);
-        player.damage(0);
-        player.setLastDamageCause(dmg);
-        Bukkit.getPluginManager().callEvent(dmg);
+
         spawnRGBParticles(player.getPlayer().getEyeLocation().add(0, 1.5, 0),  179, 67, 27, false);
 
     }
@@ -102,14 +99,11 @@ public class ReciproBurstAbility extends Ability implements SpecialCase {
             if (arena.getType().isTeamsMode()){
                 if (arena.getTeam(player).equals(arena.getTeam(caster))) continue;
             }
+            doDamageTo(caster, player, 15, CustomDeathCause.RECIPRO_BURST);
 
-            EntityDamageEvent dmg = new EntityDamageEvent(player, EntityDamageEvent.DamageCause.CUSTOM, 15);
-            arena.getQuirkBattleGame().getCustomDeathCause().put(player.getUniqueId(), CustomDeathCause.RECIPRO_BURST);
-            arena.getQuirkBattleGame().getLastAbilityAttacker().put(player.getUniqueId(), player.getUniqueId());
             player.playSound(player.getLocation(), Sound.FIZZ, 1f, 1f);
-            player.damage(0);
-            player.setLastDamageCause(dmg);
-            Bukkit.getPluginManager().callEvent(dmg);
+
+
         }
     }
 

@@ -8,6 +8,7 @@ import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.util.Quirk;
+import net.herobrine.quirkbattle.util.projectile.PortalProjectileService;
 import net.minecraft.server.v1_8_R3.EnumParticle;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -38,6 +39,7 @@ public class FireWallAbility extends Ability {
     private final Player player = Bukkit.getPlayer(quirk.getUniqueId());
     private final List<ArmorStand> standLocations = new ArrayList<>();
     private final Map<UUID, Boolean> hasHit = new HashMap<>();
+    private PortalProjectileService portalService;
 
 
 
@@ -45,6 +47,7 @@ public class FireWallAbility extends Ability {
 
     @Override
     public void doAbility(Player player) {
+        portalService = new PortalProjectileService(arena.getQuirkBattleGame().getWarpGateManagers());
         Location eyeLocation = player.getEyeLocation();
         Vector directionVector = eyeLocation.getDirection();
         Location frontLocation = eyeLocation.add(directionVector);
@@ -60,11 +63,26 @@ public class FireWallAbility extends Ability {
         spawnStand(centerLocation);
         centerLocation.getWorld().playSound(centerLocation, Sound.FIRE_IGNITE, 1f, 1f);
 
+        final double stepSize = 0.5;
+        Vector initialDir = centerLocation.getDirection().setY(0).normalize();
+
+        PortalProjectileService.SequentialProjectile projectile = portalService.createSequentialProjectile(
+                centerLocation,
+                initialDir,
+                stepSize,
+                (location, direction, wentThroughPortal) -> {
+                    // Handle portal transition effects
+
+                    if (wentThroughPortal) {
+                        // White flash at portal entry/exit
+                        spawnRGBParticles(location, 255, 255, 255, true);
+                    }
+
+                }
+        );
+
+
         new BukkitRunnable(){
-            Location origin = loc;
-            Location endpoint = loc.add(loc.getDirection().normalize());
-            Vector direction = endpoint.toVector().subtract(origin.toVector());
-            Location start = origin.clone();
             int i = 0;
 
             @Override
@@ -77,18 +95,13 @@ public class FireWallAbility extends Ability {
                     return;
                 }
 
+                Location start = projectile.getCurrentLocation();
+
+                projectile.step();
+
                 spawnParticle(start, EnumParticle.FLAME, true);
                 spawnRGBParticles(start, 179, 67, 27, true);
                 spawnRGBParticles(start, 179, 53, 41,true);
-
-                // damage(p,start,playerdata.get(p.getUniqueId()).getQUIRK().getQUIRKCASTMANAGER().getABILITY1_DAMAGE());
-                origin = start.clone();
-                origin.setY(0);
-                endpoint = origin.clone().add(loc.getDirection().normalize());
-                endpoint.setY(0);
-                direction = endpoint.toVector().subtract(origin.toVector()).normalize();
-                direction.setY(0);
-                start = start.add(direction.divide(new Vector(2,2,2)));
 
 
                 // spawn stand and do collision on every other tick!! concurrentmodificationexception prevention, big brain

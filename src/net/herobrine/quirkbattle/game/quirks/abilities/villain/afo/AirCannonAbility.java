@@ -1,15 +1,13 @@
 package net.herobrine.quirkbattle.game.quirks.abilities.villain.afo;
 
-import net.herobrine.gamecore.Arena;
-import net.herobrine.gamecore.Manager;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
+import net.herobrine.quirkbattle.util.projectile.PortalProjectileService;
 import net.herobrine.quirkbattle.util.Quirk;
 import net.minecraft.server.v1_8_R3.EnumParticle;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
@@ -17,19 +15,21 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class AirCannonAbility extends Ability {
-
+    private PortalProjectileService portalService;
 
     public AirCannonAbility(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
     }
 
-    private final ThreadLocalRandom random = ThreadLocalRandom.current();
-
     @Override
     public void doAbility(Player player) {
+        // Initialize portal service with current managers
+        portalService = new PortalProjectileService(arena.getQuirkBattleGame().getWarpGateManagers());
+
         player.playSound(player.getLocation(), Sound.GHAST_FIREBALL, 1f, .8f);
         doVFX(player);
     }
@@ -42,6 +42,14 @@ public class AirCannonAbility extends Ability {
         double maxRadius = 1.7;
         int maxTicks = 20; // Duration of animation
 
+        // Create cone attack using the fixed service
+        PortalProjectileService.ConeParticleAttack coneAttack = portalService.createConeAttack(
+                start,
+                direction,
+                maxRange,
+                maxRadius
+        );
+
         new BukkitRunnable() {
             int tick = 0;
 
@@ -53,66 +61,25 @@ public class AirCannonAbility extends Ability {
                 }
 
                 // Progress from 0 to 1 over the animation
-                double progress = (double) tick / maxTicks;
+                double progress = (double) (tick + 1) / maxTicks; // Start with some progress so particles are visible
 
-                // Current cone reaches this far
-                double currentMaxDistance = maxRange * progress;
+                // Generate particles using the service and get back the locations
+                List<Location> particleLocations = coneAttack.generateParticles(progress, 20, (location) -> {
+                    // Spawn visual particles at each location
+                    spawnRGBParticles(location, 237, 240, 245, true);
+                    spawnRGBParticles(location, 57, 64, 59, true);
+                });
 
-                // Spawn particles for this frame
-                for (int i = 0; i < 20; i++) { // 20 particles per tick
-                    // Random distance from 0 to current max distance
-                    double distance = Math.random() * currentMaxDistance;
-
-                    // Radius increases with distance
-                    double radius = (distance / maxRange) * maxRadius;
-
-                    Vector particleOffset = generateConePoint(direction, distance, radius);
-                    Location loc = start.clone().add(particleOffset);
-                    if (i % 3 == 0) doCollision(loc);
-                    spawnRGBParticles(loc, 237, 240, 245, true);
-                    spawnRGBParticles(loc, 57, 64, 59, true);
+                // Do collision checks on some of the generated locations
+                for (int i = 0; i < particleLocations.size(); i++) {
+                    if (i % 3 == 0) { // Check every 3rd particle for performance
+                        doCollision(particleLocations.get(i));
+                    }
                 }
-
 
                 tick++;
             }
         }.runTaskTimer(QuirkBattlesPlugin.getInstance(), 0L, 1L);
-    }
-
-
-
-     //Generates a random point within a cone
-
-    public Vector generateConePoint(Vector direction, double distance, double radius) {
-        // Create two perpendicular vectors to the direction
-        Vector perpendicular1 = getPerpendicular(direction);
-        Vector perpendicular2 = direction.clone().crossProduct(perpendicular1).normalize();
-
-        // Generate random point in a circle (uniform distribution)
-        double angle = random.nextDouble() * 2 * Math.PI;
-        double r = Math.sqrt(random.nextDouble()) * radius;
-
-        // Convert polar coordinates to cartesian in the perpendicular plane
-        Vector circlePoint = perpendicular1.clone().multiply(Math.cos(angle) * r)
-                .add(perpendicular2.clone().multiply(Math.sin(angle) * r));
-
-        // Add the distance component along the cone axis
-        return direction.clone().multiply(distance).add(circlePoint);
-    }
-
-
-    //Gets a perpendicular vector to the given vector
-
-    private Vector getPerpendicular(Vector vector) {
-        Vector result = new Vector(0, 1, 0);
-
-        // If the vector is parallel to Y-axis, use X-axis instead
-        if (Math.abs(vector.getY()) > 0.9) {
-            result = new Vector(1, 0, 0);
-        }
-
-        // Create perpendicular vector using cross product
-        return vector.clone().crossProduct(result).normalize();
     }
 
     public void doCollision(Location loc) {
@@ -120,18 +87,24 @@ public class AirCannonAbility extends Ability {
             if (!(ent instanceof Player)) continue;
             Player player = (Player) ent;
             Player caster = Bukkit.getPlayer(uuid);
+
             if (player.getUniqueId() == caster.getUniqueId()) continue;
+
             if (arena.getType().isTeamsMode()) {
                 if (arena.getTeam(player).equals(arena.getTeam(caster))) continue;
             }
-                     Location impact = player.getLocation();
-                     spawnParticle(impact, EnumParticle.EXPLOSION_LARGE, true);
-                     impact.getWorld().playSound(impact, Sound.EXPLODE, 2f, 0.7f);
-                     Vector knockback = player.getLocation().toVector().subtract(caster.getLocation().toVector()).normalize().multiply(1.7);
-                     player.setVelocity(knockback);
-                     doDamageTo(caster, player, ability.getDamage(), CustomDeathCause.AIR_CANNON);
 
+            Location impact = player.getLocation();
+            spawnParticle(impact, EnumParticle.EXPLOSION_LARGE, true);
+            impact.getWorld().playSound(impact, Sound.EXPLODE, 2f, 0.7f);
+
+            Vector knockback = player.getLocation().toVector()
+                    .subtract(caster.getLocation().toVector())
+                    .normalize()
+                    .multiply(1.7);
+            player.setVelocity(knockback);
+
+            doDamageTo(caster, player, ability.getDamage(), CustomDeathCause.AIR_CANNON);
         }
     }
 }
-

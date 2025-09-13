@@ -14,7 +14,12 @@ import net.herobrine.gamecore.Teams;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.files.Config;
 import net.herobrine.quirkbattle.game.quirks.abilities.QuirkAbilityManager;
+import net.herobrine.quirkbattle.game.quirks.villain.WarpGate;
+import net.herobrine.quirkbattle.game.stats.EnhancedPlayerStats;
 import net.herobrine.quirkbattle.game.stats.PlayerStats;
+import net.herobrine.quirkbattle.util.WarpGateManager;
+import net.herobrine.quirkbattle.util.npc.CloneManager;
+import net.herobrine.quirkbattle.util.DisguisePlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -23,6 +28,7 @@ import org.bukkit.WorldBorder;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
@@ -38,10 +44,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 public class QuirkBattlesGame {
 
     private final Arena arena;
+    private final DisguisePlayer disguiseManager;
+    private final CloneManager cloneManager;
     private GameType mod;
     private int seconds = 210;
     private long collisionTicks;
@@ -55,6 +64,7 @@ public class QuirkBattlesGame {
     // Victim UUID -> Attacker UUID
     private final Map<UUID, UUID> lastAbilityAttacker = new HashMap<>();
 
+    private final Map<UUID, WarpGateManager> warpGateManagerMap = new HashMap<>();
     private final List<UUID> alivePlayers = new ArrayList<>();
     private final Map<UUID, UUID[]> opponents = new HashMap<>();
 
@@ -76,6 +86,8 @@ public class QuirkBattlesGame {
         this.areRegionsInitialized = false;
         this.abilityManager = new QuirkAbilityManager(arena.getID());
         this.border = arena.getSpawn().getWorld().getWorldBorder();
+        this.disguiseManager = new DisguisePlayer();
+        this.cloneManager = new CloneManager(arena);
     }
 
     public void initRegion() {
@@ -393,6 +405,8 @@ public class QuirkBattlesGame {
                     player.teleport(Config.getSpawnTeam1(arena.getID()));
                     player.sendMessage(ChatColor.RED + "You were teleported to the default spawn location because there are more than 4 players!");
                     break;
+
+
             }
             i++;
             if (!Manager.hasKit(player)) {
@@ -420,6 +434,15 @@ public class QuirkBattlesGame {
 
     public QuirkAbilityManager getAbilityManager() {
         return abilityManager;
+    }
+    public DisguisePlayer getDisguiseManager() {return disguiseManager;}
+    public CloneManager getCloneManager() {return cloneManager;}
+    public List<WarpGateManager> getWarpGateManagers() {return new ArrayList<>(warpGateManagerMap.values());}
+    public void registerWarpGateManager(WarpGateManager manager, UUID uuid) {warpGateManagerMap.put(uuid, manager);}
+    public void unregisterWarpGateManager(UUID uuid) {
+        warpGateManagerMap.get(uuid).clear();
+
+        warpGateManagerMap.remove(uuid);
     }
 
     public void regenPlayerHealth(Player player) {
@@ -452,8 +475,30 @@ public class QuirkBattlesGame {
         double playerHealth = player.getMaxHealth() * healthPercent;
         if (playerHealth > 1) player.setHealth(playerHealth);
         else player.setHealth(2);
-        if (!getStats(player).useTemperature())
+        if (getStats(player).useBlood()) {
+            int blood = getStats(player).getBlood();
+            int maxBlood = getStats(player).getMaxBlood();
+            
+            if (!getStats(player).useTemperature()) GameCoreMain.getInstance().sendActionBar(player, "&c" + health + "❤   &a" + defense + "❈ Defense   &3" + mana + "/" + intelligence + "⸎ Stamina   &4" + blood + "/" + maxBlood + "🩸 Blood");
+            else {
+                ChatColor color;
+                int temp = getStats(player).getTemp();
+                int maxTemp = getStats(player).getMaxTemp();
+                int baseTemp = getStats(player).getBaseTemp();
+                if (temp > baseTemp) color = ChatColor.RED;
+                else if (temp < baseTemp) color = ChatColor.AQUA;
+                else color = ChatColor.YELLOW;
+                GameCoreMain.getInstance().sendActionBar(player, "&c" + health + "❤   &a" + defense + "❈ Defense   " + color + temp + "/" + maxTemp + "❄ Temperature   &4" + blood + "/" + maxBlood + "🩸 Blood");
+            }
+        }
+        else if (getStats(player) instanceof EnhancedPlayerStats) {
+            EnhancedPlayerStats stats = (EnhancedPlayerStats) getStats(player);
+            GameCoreMain.getInstance().sendActionBar(player, stats.getEnhancedDisplay());
+        }
+
+        else if (!getStats(player).useTemperature()) {
             GameCoreMain.getInstance().sendActionBar(player, "&c" + health + "❤   &a" + defense + "❈ Defense   &3" + mana + "/" + intelligence + "⸎ Stamina");
+        }
         else {
             ChatColor color;
             int temp = getStats(player).getTemp();

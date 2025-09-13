@@ -23,12 +23,28 @@ import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.ice.IceShardA
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.icyhot.ice.IceWallAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.AirPropulsionAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.DetroitSmashAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.GearshiftAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.ShootStyleAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.SwitchAbilitySetTest;
+import net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.awakening.BlackwhipAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.villain.afo.AirCannonAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.villain.afo.StealAbility;
 import net.herobrine.quirkbattle.game.quirks.abilities.villain.afo.TendrilAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.villain.blueflame.BlueflameWallAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.villain.blueflame.CremationBurstAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.villain.blueflame.IncinerateAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.villain.decay.DecayAuraAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.villain.decay.DecayWaveAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.villain.decay.DisintegrationAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.villain.doubles.CloneArmyAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.villain.transform.BloodCollectionAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.villain.transform.BloodNeedleAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.villain.transform.DisguiseAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.villain.warpgate.GatePullAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.villain.warpgate.WarpGateAbility;
+import net.herobrine.quirkbattle.game.quirks.abilities.villain.warpgate.WarpStepAbility;
 import net.herobrine.quirkbattle.util.Quirk;
+import org.apache.logging.log4j.core.pattern.AbstractStyleNameConverter;
 import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
@@ -110,6 +126,21 @@ public class QuirkAbilityManager {
                 abilities.add(switchTest);
                 Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, switchTest.getItem());
                 return switchTest;
+            case BLOOD_COLLECTION:
+                BloodCollectionAbility bloodCollection = new BloodCollectionAbility(ability, quirk, id, slot);
+                abilities.add(bloodCollection);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, bloodCollection.getItem());
+                return bloodCollection;
+            case BLOOD_NEEDLE:
+                BloodNeedleAbility bloodNeedleAbility = new BloodNeedleAbility(ability, quirk, id, slot);
+                abilities.add(bloodNeedleAbility);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, bloodNeedleAbility.getItem());
+                return bloodNeedleAbility;
+            case DISGUISE:
+                DisguiseAbility disguiseAbility = new DisguiseAbility(ability, quirk, id, slot);
+                abilities.add(disguiseAbility);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, disguiseAbility.getItem());
+                return disguiseAbility;
             case ICE_ABILITY_TEST:
                 IceAbilityTest iceTest = new IceAbilityTest(ability, quirk, id, slot);
                 abilities.add(iceTest);
@@ -195,6 +226,66 @@ public class QuirkAbilityManager {
                 abilities.add(airCannon);
                 Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, airCannon.getItem());
                 return airCannon;
+            case DECAY_AURA:
+                DecayAuraAbility decayAura = new DecayAuraAbility(ability, quirk, id, slot);
+                abilities.add(decayAura);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, decayAura.getItem());
+                return decayAura;
+            case DECAY_WAVE:
+                DecayWaveAbility decayWave = new DecayWaveAbility(ability, quirk, id, slot);
+                abilities.add(decayWave);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, decayWave.getItem());
+                return decayWave;
+            case DISINTEGRATION:
+                DisintegrationAbility disintegration = new DisintegrationAbility(ability, quirk, id, slot);
+                abilities.add(disintegration);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, disintegration.getItem());
+                return disintegration;
+            case CREAMATION_BURST:
+                CremationBurstAbility cremationBurstAbility = new CremationBurstAbility(ability, quirk, id, slot);
+                abilities.add(cremationBurstAbility);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, cremationBurstAbility.getItem());
+                return cremationBurstAbility;
+            case BLUEFLAME_WALL:
+                BlueflameWallAbility blueflameWallAbility = new BlueflameWallAbility(ability, quirk, id, slot);
+                abilities.add(blueflameWallAbility);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, blueflameWallAbility.getItem());
+                return blueflameWallAbility;
+            case INCINERATE:
+                IncinerateAbility incinerateAbility = new IncinerateAbility(ability, quirk, id, slot);
+                abilities.add(incinerateAbility);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, incinerateAbility.getItem());
+                return incinerateAbility;
+            case CLONE_ARMY:
+                CloneArmyAbility cloneArmyAbility = new CloneArmyAbility(ability, quirk, id, slot);
+                abilities.add(cloneArmyAbility);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, cloneArmyAbility.getItem());
+                return cloneArmyAbility;
+            case WARP_STEP:
+                WarpStepAbility warpStepAbility = new WarpStepAbility(ability, quirk, id, slot);
+                abilities.add(warpStepAbility);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, warpStepAbility.getItem());
+                return warpStepAbility;
+            case WARP_GATE:
+                WarpGateAbility warpGateAbility = new WarpGateAbility(ability, quirk, id, slot);
+                abilities.add(warpGateAbility);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, warpGateAbility.getItem());
+                return warpGateAbility;
+            case GATE_PULL:
+                GatePullAbility gatePullAbility = new GatePullAbility(ability, quirk, id, slot);
+                abilities.add(gatePullAbility);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, gatePullAbility.getItem());
+                return gatePullAbility;
+            case BLACKWHIP:
+                BlackwhipAbility blackwhipAbility = new BlackwhipAbility(ability, quirk, id, slot);
+                abilities.add(blackwhipAbility);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, blackwhipAbility.getItem());
+                return blackwhipAbility;
+            case GEARSHIFT:
+                GearshiftAbility gearshiftAbility = new GearshiftAbility(ability, quirk, id, slot);
+                abilities.add(gearshiftAbility);
+                Bukkit.getPlayer(quirk.getUniqueId()).getInventory().setItem(slot, gearshiftAbility.getItem());
+                return gearshiftAbility;
             default:
                 return null;
         }

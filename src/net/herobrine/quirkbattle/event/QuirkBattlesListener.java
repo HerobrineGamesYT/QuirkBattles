@@ -17,6 +17,7 @@ import net.herobrine.quirkbattle.game.quirks.hero.Explosion;
 import net.herobrine.quirkbattle.game.quirks.hero.Hardening;
 import net.herobrine.quirkbattle.game.quirks.hero.OneForAll;
 import net.herobrine.quirkbattle.game.quirks.villain.AllForOne;
+import net.herobrine.quirkbattle.game.quirks.villain.Blueflame;
 import net.herobrine.quirkbattle.util.Quirk;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -156,6 +157,11 @@ public class QuirkBattlesListener implements Listener {
                         Engine engine = (Engine) quirk;
                         engine.changeTemp(-2);
                     }
+
+                    else if (quirk instanceof Blueflame) {
+                        Blueflame blueflame = (Blueflame) quirk;
+                        blueflame.changeTemp(-6);
+                    }
                     @SuppressWarnings("deprecation") EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, damage);
                     arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.GENERAL_ATTACK);
                     arena.getQuirkBattleGame().getLastAbilityAttacker().put(target.getUniqueId(), player.getUniqueId());
@@ -180,6 +186,10 @@ public class QuirkBattlesListener implements Listener {
                         else if (quirk instanceof Engine) {
                             Engine engine = (Engine) quirk;
                             engine.changeTemp(-2);
+                        }
+                        else if (quirk instanceof Blueflame) {
+                            Blueflame blueflame = (Blueflame) quirk;
+                            blueflame.changeTemp(-6);
                         }
                         @SuppressWarnings("deprecation") EntityDamageEvent dmg = new EntityDamageEvent(target, EntityDamageEvent.DamageCause.CUSTOM, damage);
                         arena.getQuirkBattleGame().getCustomDeathCause().put(target.getUniqueId(), CustomDeathCause.GENERAL_ATTACK);
@@ -255,8 +265,13 @@ public class QuirkBattlesListener implements Listener {
                     arena.sendMessage(HerobrinePVPCore.translateString("&6&lEXPLOSION! ") + arena.getTeam(player).getColor() + player.getName() + ChatColor.GRAY + " just got exploded by " + arena.getTeam(killer).getColor() + killer.getName());
                 break;
             case SHARP_CLAW:
-                Hardening killClass = (Hardening) arena.getClasses().get(killer.getUniqueId());
-                boolean isUnbreakable = killClass.isUnbreakable();
+                Hardening killClass = null;
+                if (arena.getClasses().get(killer.getUniqueId()) instanceof Hardening) {
+                    killClass = (Hardening) arena.getClasses().get(killer.getUniqueId());
+                }
+                boolean isUnbreakable;
+                if (killClass == null) isUnbreakable = false;
+                else isUnbreakable = killClass.isUnbreakable();
                 if (!arena.getType().isTeamsMode()) {
                     if (isUnbreakable)
                         arena.sendMessage(HerobrinePVPCore.getRankColor(player) + player.getName() + HerobrinePVPCore.translateString(" &7couldn't handle the &c&lUNBREAKABLE &r&7power of ") + HerobrinePVPCore.getRankColor(killer) + killer.getName() + ChatColor.GRAY + "!");

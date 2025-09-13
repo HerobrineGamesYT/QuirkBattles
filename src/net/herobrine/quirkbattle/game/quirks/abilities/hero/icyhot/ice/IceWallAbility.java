@@ -7,6 +7,7 @@ import net.herobrine.quirkbattle.game.CustomDeathCause;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.util.Quirk;
+import net.herobrine.quirkbattle.util.projectile.PortalProjectileService;
 import net.minecraft.server.v1_8_R3.EnumParticle;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -34,13 +35,14 @@ public class IceWallAbility extends Ability {
     private final Player player = Bukkit.getPlayer(quirk.getUniqueId());
     private final List<ArmorStand> standLocations = new ArrayList<>();
     private final Map<UUID, Boolean> hasHit = new HashMap<>();
-
+    private PortalProjectileService portalService;
     public IceWallAbility(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
     }
 
     @Override
     public void doAbility(Player player) {
+        portalService = new PortalProjectileService(arena.getQuirkBattleGame().getWarpGateManagers());
         Location eyeLocation = player.getEyeLocation();
         Vector directionVector = eyeLocation.getDirection();
         Location frontLocation = eyeLocation.add(directionVector);
@@ -52,14 +54,28 @@ public class IceWallAbility extends Ability {
     public void doVFX(Location centerLocation) {
         standLocations.clear();
         hasHit.clear();
-        Location loc = centerLocation.clone();
         spawnStand(centerLocation);
         centerLocation.getWorld().playSound(centerLocation, Sound.GLASS, 1f, 1f);
+
+        final double stepSize = 0.5;
+        Vector initialDir = centerLocation.getDirection().setY(0).normalize();
+
+        PortalProjectileService.SequentialProjectile projectile = portalService.createSequentialProjectile(
+                centerLocation,
+                initialDir,
+                stepSize,
+                (location, direction, wentThroughPortal) -> {
+                    // Handle portal transition effects
+
+                    if (wentThroughPortal) {
+                        // White flash at portal entry/exit
+                        spawnRGBParticles(location, 255, 255, 255, true);
+                    }
+
+                }
+        );
+
         new BukkitRunnable(){
-            Location origin = loc;
-            Location endpoint = loc.add(loc.getDirection().normalize());
-            Vector direction = endpoint.toVector().subtract(origin.toVector());
-            Location start = origin.clone();
             int i = 0;
 
             @Override
@@ -72,20 +88,19 @@ public class IceWallAbility extends Ability {
                     return;
                 }
 
-                spawnParticle(start, EnumParticle.SNOW_SHOVEL, true);
-                spawnRGBParticles(start, 184,253,255, true);
-                spawnRGBParticles(start, 220,254,255,true);
-                origin = start.clone();
-                origin.setY(0);
-                endpoint = origin.clone().add(loc.getDirection().normalize());
-                endpoint.setY(0);
-                direction = endpoint.toVector().subtract(origin.toVector()).normalize();
-                direction.setY(0);
-                start = start.add(direction.divide(new Vector(2,2,2)));
+                // Get current position from projectile
+                Location currentLoc = projectile.getCurrentLocation();
 
+                // Step the projectile forward
+                projectile.step();
+
+
+                spawnParticle(currentLoc, EnumParticle.SNOW_SHOVEL, true);
+                spawnRGBParticles(currentLoc, 184,253,255, true);
+                spawnRGBParticles(currentLoc, 220,254,255,true);
 
                 // spawn stand and do collision on every other tick!! concurrentmodificationexception prevention, big brain
-                if(i%2==0) spawnStand(start);
+                if(i%2==0) spawnStand(currentLoc);
                 else doCollision();
 
                 i++;

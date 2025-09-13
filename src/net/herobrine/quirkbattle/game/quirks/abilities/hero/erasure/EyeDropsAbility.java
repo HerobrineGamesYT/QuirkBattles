@@ -1,6 +1,5 @@
 package net.herobrine.quirkbattle.game.quirks.abilities.hero.erasure;
 
-import net.herobrine.gamecore.Class;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
 import net.herobrine.quirkbattle.game.quirks.abilities.SpecialCase;

@@ -17,8 +17,10 @@ public class AirPropulsionAbility extends Ability {
     @Override
     public void doAbility(Player player) {
         Vector dir = player.getLocation().getDirection();
+        int multiplier = stats.getMana();
+        if (multiplier > 60) multiplier = 60;
         dir.normalize();
-        dir.multiply(2 + (2*stats.getMana() / 10));
+        dir.multiply(2 + (2*multiplier / 10));
         player.setVelocity(dir);
         player.playSound(player.getLocation(), Sound.GHAST_FIREBALL, 1f, 1.2f);
         OneForAll ofa = (OneForAll) getQuirk();

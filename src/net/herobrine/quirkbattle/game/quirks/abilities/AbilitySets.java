@@ -11,7 +11,13 @@ public enum AbilitySets {
     ERASURE(new Abilities[]{Abilities.CAPTURE, Abilities.SHARPENED_KNIFE, Abilities.EYEDROPS}, false, 0),
     PERMEATION(new Abilities[]{}, false, 0),
     ENGINE(new Abilities[]{Abilities.ENGINE_BOOST, Abilities.RECIPRO_BURST, Abilities.RAPID_KICK}, true, -6),
-    OFA_SWITCH_TEST(new Abilities[]{Abilities.AIR_PROPULSION, Abilities.DETROIT_SMASH, Abilities.SHOOT_STYLE}, false, 0);
+    TRANSFORM(new Abilities[]{Abilities.BLOOD_COLLECTION, Abilities.BLOOD_NEEDLE, Abilities.DISGUISE}, false, 0),
+    DECAY(new Abilities[] {Abilities.DECAY_WAVE, Abilities.DECAY_AURA, Abilities.DISINTEGRATION}, false, 0),
+    OFA_AWAKENED_1(new Abilities[] {Abilities.DETROIT_SMASH, Abilities.BLACKWHIP, Abilities.AIR_PROPULSION}, false, 0),
+    OFA_AWAKENED_2(new Abilities[]{Abilities.GEARSHIFT, Abilities.SHOOT_STYLE, Abilities.AIR_PROPULSION}, false, 0),
+    BLUEFLAME(new Abilities[] {Abilities.CREAMATION_BURST, Abilities.BLUEFLAME_WALL, Abilities.INCINERATE}, true, 1),
+    DOUBLE(new Abilities[] {Abilities.CLONE_ARMY}, false, 0),
+    WARP_GATE(new Abilities[] {Abilities.WARP_STEP, Abilities.GATE_PULL, Abilities.WARP_GATE, Abilities.CAPTURE, Abilities.AIR_CANNON, Abilities.ICE_WALL}, false, 0);
 
 
     private final Abilities[] abilities;

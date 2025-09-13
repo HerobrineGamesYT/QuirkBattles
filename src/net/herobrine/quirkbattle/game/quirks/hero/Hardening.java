@@ -241,5 +241,8 @@ public class Hardening extends Class implements Quirk, Stealable {
         this.stats = arena.getQuirkBattleGame().getPlayerStatsMap().get(getOriginalId());
         this.setSharpClaw(false);
         this.hitCount = 0;
+
+        QuirkErasureEvent event = new QuirkErasureEvent(player, false);
+        Bukkit.getServer().getPluginManager().callEvent(event);
     }
 }

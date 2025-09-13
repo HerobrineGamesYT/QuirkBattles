@@ -32,6 +32,7 @@ import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
 import java.lang.Class;
 import java.lang.reflect.InvocationTargetException;
@@ -39,6 +40,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public abstract class Ability implements Listener {
     // ability quirk is using
@@ -66,6 +68,7 @@ public abstract class Ability implements Listener {
     protected boolean active;
 
     private int cooldownSeconds = 0;
+    private final ThreadLocalRandom random = ThreadLocalRandom.current();
 
     public Ability(Abilities ability, Quirk quirk, int id, int slot) {
         this.ability = ability;
@@ -100,7 +103,7 @@ public abstract class Ability implements Listener {
     }
 
     public boolean hasManaCost() {
-        return ability.getCost() > 0 && !stats.useTemperature();
+        return ability.getCost() > 0 && !stats.useTemperature() && !stats.useBlood();
     }
 
     public boolean hasCooldown() {
@@ -209,9 +212,11 @@ public abstract class Ability implements Listener {
         }
 
         if (shouldAddSpace) lore.add(" ");
-        if (ability.getCost() != 0 && !stats.useTemperature()) lore.add(ChatColor.DARK_GRAY + "Stamina Cost: " + ChatColor.DARK_AQUA + ability.getCost());
+        if (ability.getCost() != 0 && !stats.useTemperature() && !stats.useBlood()) lore.add(ChatColor.DARK_GRAY + "Stamina Cost: " + ChatColor.DARK_AQUA + ability.getCost());
 
         if (ability.getCost() != 0 && stats.useTemperature()) lore.add(ChatColor.DARK_GRAY + "Temperature Cost: " + ChatColor.GREEN + ability.getCost());
+
+        if (ability.getCost() != 0 && stats.useBlood()) lore.add(ChatColor.DARK_GRAY + "Blood Cost: " + ChatColor.DARK_RED + ability.getCost());
 
         if(ability.getMinStamina() != 0 && !stats.useTemperature()) {
             if(ability.getMinStamina() > 0) lore.add(ChatColor.DARK_GRAY + "Minimum Stamina: " + ChatColor.DARK_AQUA + ability.getMinStamina());
@@ -250,7 +255,7 @@ public abstract class Ability implements Listener {
         int intelligence = arena.getQuirkBattleGame().getStats(player).getIntelligence();
         int mana = arena.getQuirkBattleGame().getStats(player).getMana();
         //Cost is checked before min stamina that the message is not triggered accidentally!
-        if (this.hasManaCost() && getPlayerMana() < this.getAbility().getCost()) {
+        if (this.hasManaCost() && getPlayerMana() < this.getAbility().getCost() && !stats.useBlood()) {
             player.sendMessage(ChatColor.RED + "Not enough stamina!");
             player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f, 2f);
             GameCoreMain.getInstance().sendActionBar(player, "&c&lNOT ENOUGH STAMINA");
@@ -477,6 +482,37 @@ public abstract class Ability implements Listener {
         Bukkit.getPlayer(uuid).getInventory().setItem(this.slot, getErasedItem());
     }
 
+    // Added these utils here for cone-style particle effects, since they are used in multiple different Quirk abilities.
+
+    public Vector generateConePoint(Vector direction, double distance, double radius) {
+        // Create two perpendicular vectors to the direction
+        Vector perpendicular1 = getPerpendicular(direction);
+        Vector perpendicular2 = direction.clone().crossProduct(perpendicular1).normalize();
+
+        // Generate random point in a circle (uniform distribution)
+        double angle = random.nextDouble() * 2 * Math.PI;
+        double r = Math.sqrt(random.nextDouble()) * radius;
+
+        // Convert polar coordinates to cartesian in the perpendicular plane
+        Vector circlePoint = perpendicular1.clone().multiply(Math.cos(angle) * r)
+                .add(perpendicular2.clone().multiply(Math.sin(angle) * r));
+
+        // Add the distance component along the cone axis
+        return direction.clone().multiply(distance).add(circlePoint);
+    }
+
+    private Vector getPerpendicular(Vector vector) {
+        Vector result = new Vector(0, 1, 0);
+
+        // If the vector is parallel to Y-axis, use X-axis instead
+        if (Math.abs(vector.getY()) > 0.9) {
+            result = new Vector(1, 0, 0);
+        }
+
+        // Create perpendicular vector using cross product
+        return vector.clone().crossProduct(result).normalize();
+    }
+
     public void spawnRGBParticles(Location loc, float red, float green, float blue, boolean sendToSelf) {
         PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(EnumParticle.REDSTONE, true, (float) loc.getX(), (float) loc.getY(), (float) loc.getZ(), red / 255, green / 255, blue / 255, (float) 1, 0);
 
@@ -487,6 +523,16 @@ public abstract class Ability implements Listener {
                 GameCoreMain.getInstance().sendPacket(Bukkit.getPlayer(uuid), packet);
             }
         }
+    }
+
+    public void spawnRGBParticlesForSelf(Location loc, float red, float green, float blue) {
+        PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(EnumParticle.REDSTONE, true, (float) loc.getX(), (float) loc.getY(), (float) loc.getZ(), red / 255, green / 255, blue / 255, (float) 1, 0);
+        GameCoreMain.getInstance().sendPacket(Bukkit.getPlayer(uuid), packet);
+    }
+
+    public void spawnParticleForSelf(Location loc, EnumParticle particle) {
+        PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(particle, true, (float) loc.getX(), (float) loc.getY(), (float) loc.getZ(), 0F, 0F,0F, 0F, 10, 0);
+        GameCoreMain.getInstance().sendPacket(Bukkit.getPlayer(uuid), packet);
     }
 
     public void spawnParticle(Location loc, EnumParticle particle, boolean sendToSelf) {

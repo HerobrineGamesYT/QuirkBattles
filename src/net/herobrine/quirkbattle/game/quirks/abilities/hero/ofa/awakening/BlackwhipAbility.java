@@ -1,10 +1,13 @@
-package net.herobrine.quirkbattle.game.quirks.abilities.hero.erasure;
+package net.herobrine.quirkbattle.game.quirks.abilities.hero.ofa.awakening;
 
+import net.herobrine.core.HerobrinePVPCore;
 import net.herobrine.quirkbattle.QuirkBattlesPlugin;
 import net.herobrine.quirkbattle.game.quirks.abilities.Abilities;
 import net.herobrine.quirkbattle.game.quirks.abilities.Ability;
-import net.herobrine.quirkbattle.util.projectile.PortalProjectileService;
+import net.herobrine.quirkbattle.game.quirks.hero.OneForAll;
+import net.herobrine.quirkbattle.game.stats.EnhancedPlayerStats;
 import net.herobrine.quirkbattle.util.Quirk;
+import net.herobrine.quirkbattle.util.projectile.PortalProjectileService;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -24,35 +27,40 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-
-public class CaptureAbility extends Ability {
-
+public class BlackwhipAbility extends Ability {
     private Player player;
+    private final OneForAll ofa;
     private final Map<UUID, Boolean> hasHit = new HashMap<>();
     private PortalProjectileService portalService;
 
     // Track the path the capture scarf took
-    private List<Location> capturePath = new ArrayList<>();
-    private boolean captureWentThroughPortal = false;
+    private List<Location> path = new ArrayList<>();
+    private boolean wentThroughPortal = false;
+    private boolean wasEnhanced = false;
+    private EnhancedPlayerStats enhancedStats;
 
-    public CaptureAbility(Abilities ability, Quirk quirk, int id, int slot) {
+    public BlackwhipAbility(Abilities ability, Quirk quirk, int id, int slot) {
         super(ability, quirk, id, slot);
-        this.player = Bukkit.getPlayer(quirk.getUniqueId());
+        this.ofa = (OneForAll) quirk;
+        this.player = Bukkit.getPlayer(uuid);
+        // This ability will only be registered in Heroes VS Villains mode, so this is a safe cast
+        this.enhancedStats = (EnhancedPlayerStats) stats;
     }
 
     @Override
     public void doAbility(Player player) {
-        // Initialize portal service
         portalService = new PortalProjectileService(arena.getQuirkBattleGame().getWarpGateManagers());
 
         // Clear previous path
-        capturePath.clear();
-        captureWentThroughPortal = false;
+        path.clear();
+        wentThroughPortal = false;
+        wasEnhanced = false;
+        checkForEnhancement();
 
-        doFX();
+        doVFX();
     }
 
-    public void doFX() {
+    public void doVFX() {
         Location startLoc = player.getLocation().add(0, 1.5, 0);
         Vector direction = player.getLocation().getDirection().normalize();
 
@@ -64,7 +72,7 @@ public class CaptureAbility extends Ability {
                 (location, dir, wentThroughPortal) -> {
                     // Portal transition effect
                     if (wentThroughPortal) {
-                        captureWentThroughPortal = true;
+                        this.wentThroughPortal = true;
                         spawnRGBParticles(location, 255, 255, 255, true); // White flash
                         player.getWorld().playSound(location, Sound.ENDERMAN_TELEPORT, 0.5f, 1.5f);
                     }
@@ -78,14 +86,14 @@ public class CaptureAbility extends Ability {
             public void run() {
                 if (steps > 15 || hitSomething) {
                     hasHit.clear();
-                    capturePath.clear();
+                    path.clear();
                     this.cancel();
                     return;
                 }
 
                 if (!isActive()) {
                     hasHit.clear();
-                    capturePath.clear();
+                    path.clear();
                     this.cancel();
                     return;
                 }
@@ -95,19 +103,21 @@ public class CaptureAbility extends Ability {
                 Location currentLoc = captureProjectile.getCurrentLocation();
 
                 // Track the path
-                capturePath.add(currentLoc.clone());
+                path.add(currentLoc.clone());
 
                 // Check for block collision
                 if (currentLoc.getBlock().getType() != Material.AIR) {
                     hasHit.clear();
 
                     // Pull player along the path if it went through a portal
-                    if (captureWentThroughPortal && !capturePath.isEmpty()) {
+                    if (wentThroughPortal && !path.isEmpty()) {
                         pullPlayerAlongPath();
                     } else {
                         // Direct pull if no portal
+                        double pullStrength = 2.5;
+                        if (wasEnhanced) pullStrength = pullStrength *  2.5;
                         Vector direction = currentLoc.toVector().subtract(player.getLocation().toVector()).normalize();
-                        direction.multiply(2);
+                        direction.multiply(pullStrength);
                         player.setVelocity(direction);
                     }
 
@@ -122,20 +132,43 @@ public class CaptureAbility extends Ability {
                         hitSomething = true;
 
                         // Pull the target back along the path if capture went through portal
-                        if (captureWentThroughPortal && !capturePath.isEmpty()) {
+                        if (wentThroughPortal && !path.isEmpty()) {
                             pullTargetAlongPath(hitTarget);
                         }
+
+
                         // Normal pull logic is already in doCollision
                     }
-
-                    // Spawn capture scarf particles (doubled for thickness)
-                    spawnRGBParticles(currentLoc, 0, 240, 232, true);
-                    spawnRGBParticles(currentLoc, 0, 240, 232, true);
+                    // Different VFX For Chain if Blackchain is enabled
+                    spawnBlackwhipParticles(currentLoc, wasEnhanced);
                 }
 
                 steps++;
             }
         }.runTaskTimer(QuirkBattlesPlugin.getInstance(), 0, 1L);
+    }
+
+    public void spawnBlackwhipParticles(Location loc, boolean enhanced) {
+        // Main blackwhip - very dark green/black
+        spawnRGBParticles(loc,30,109,82, true);
+        spawnRGBParticles(loc,15,101,103, true);
+        spawnRGBParticles(loc, 21,34,40, true);
+
+        if (enhanced) {
+            // Enhanced with Fa-Jin - add pink/magenta energy (like Deku's Fa-Jin)
+            if (Math.random() < 0.4) {
+                for (int i = 0; i < 2; i++) {
+                    Vector offset = new Vector(
+                            (Math.random() - 0.5) * 0.3,
+                            (Math.random() - 0.5) * 0.3,
+                            (Math.random() - 0.5) * 0.3
+                    );
+                    Location sparkLoc = loc.clone().add(offset);
+                    spawnRGBParticles(sparkLoc, 247, 87, 111, true);
+                    spawnRGBParticles(sparkLoc, 0,0,0, true);
+                }
+            }
+        }
     }
 
     private void pullPlayerAlongPath() {
@@ -145,15 +178,17 @@ public class CaptureAbility extends Ability {
 
             @Override
             public void run() {
-                if (pathIndex >= capturePath.size()) {
-                    capturePath.clear();
+                if (pathIndex >= path.size()) {
+                    path.clear();
                     cancel();
                     return;
                 }
+                double pullStrength = 2.5;
+                if (wasEnhanced) pullStrength = pullStrength *  2.5;
 
-                Location target = capturePath.get(pathIndex);
+                Location target = path.get(pathIndex);
                 Vector pullDirection = target.toVector().subtract(player.getLocation().toVector()).normalize();
-                pullDirection.multiply(2.5);
+                pullDirection.multiply(pullStrength);
                 player.setVelocity(pullDirection);
 
                 // Visual effect along the path
@@ -169,7 +204,7 @@ public class CaptureAbility extends Ability {
 
     private void pullTargetAlongPath(Player target) {
         // Create reverse path for pulling target back
-        List<Location> reversePath = new ArrayList<>(capturePath);
+        List<Location> reversePath = new ArrayList<>(path);
         Collections.reverse(reversePath);
 
         new BukkitRunnable() {
@@ -178,14 +213,15 @@ public class CaptureAbility extends Ability {
             @Override
             public void run() {
                 if (pathIndex >= reversePath.size() || target.getLocation().distance(player.getLocation()) < 3) {
-                    capturePath.clear();
+                    path.clear();
                     cancel();
                     return;
                 }
-
+                double pullStrength = 2.5;
+                if (wasEnhanced) pullStrength = pullStrength *  2.5;;
                 Location waypoint = reversePath.get(pathIndex);
                 Vector pullDirection = waypoint.toVector().subtract(target.getLocation().toVector()).normalize();
-                pullDirection.multiply(2.5);
+                pullDirection.multiply(pullStrength);
                 target.setVelocity(pullDirection);
 
                 // Visual effect showing the pull path
@@ -197,6 +233,15 @@ public class CaptureAbility extends Ability {
                 }
             }
         }.runTaskTimer(QuirkBattlesPlugin.getInstance(), 0L, 2L);
+    }
+
+    public void checkForEnhancement() {
+        if (enhancedStats.getFaJinSystem().hasEnergy(20) && !wasEnhanced) {
+            wasEnhanced = true;
+            enhancedStats.getFaJinSystem().consumeEnergy(20);
+            player.sendMessage(HerobrinePVPCore.translateString("&c&lBLACKCHAIN! &r&cBlackchain &fwas activated!"));
+            player.playSound(player.getLocation(), Sound.HORSE_ARMOR, 1f, 0.8f);
+        }
     }
 
     public Player doCollision(Location loc) {
@@ -217,22 +262,28 @@ public class CaptureAbility extends Ability {
             hasHit.put(target.getUniqueId(), true);
 
             // Only do immediate pull if no portal was involved
-            if (!captureWentThroughPortal) {
+            if (!wentThroughPortal) {
+                double pullStrength = 2;
+                if (wasEnhanced) pullStrength = pullStrength *  2.5;
                 Vector direction = target.getLocation().toVector()
                         .subtract(player.getLocation().toVector()).normalize();
                 direction.setX(direction.getX() * -1);
                 direction.setZ(direction.getZ() * -1);
-                direction.multiply(2);
+                direction.multiply(pullStrength);
                 target.setVelocity(direction);
             }
             // If portal was involved, pullTargetAlongPath will handle it
 
-            PotionEffect banditSpeed = PotionEffectType.SLOW.createEffect(120, 4);
-            target.addPotionEffect(banditSpeed);
+            PotionEffect stun;
+            if (wasEnhanced) stun = PotionEffectType.SLOW.createEffect(140, 5);
+            else stun = PotionEffectType.SLOW.createEffect(120, 4);
+            target.addPotionEffect(stun);
 
             player.playSound(player.getLocation(), Sound.DOOR_CLOSE, 1f, 1.9f);
             player.sendMessage(ChatColor.AQUA + "You captured " + target.getName() + "!");
             target.sendMessage(ChatColor.RED + "You have been captured by " + player.getName() + "!");
+
+
 
             return target; // Return the hit target
         }

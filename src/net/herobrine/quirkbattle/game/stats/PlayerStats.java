@@ -16,9 +16,12 @@ public class PlayerStats {
     private int strength;
     private int lastRegenMana;
     private boolean useTemperature;
+    private boolean useBlood;
     private int baseTemp = 0;
     private int temp = 0;
     private int maxTemp = 0;
+    private int blood = 0;
+    private int maxBlood = 100;
 
     public PlayerStats(UUID uuid, int health, int maxHealth, int defense, int mana, int intelligence, int strength) {
         this.uuid = uuid;
@@ -30,6 +33,8 @@ public class PlayerStats {
         this.strength = strength;
         this.lastRegenMana = mana;
         this.useTemperature = false;
+        this.useBlood = false;
+        this.blood = 0;
     }
 
     public PlayerStats(UUID uuid, int health, int maxHealth, int defense, int mana, int intelligence, int strength, boolean useTemperature, int temp, int maxTemp) {
@@ -45,6 +50,8 @@ public class PlayerStats {
         this.temp = temp;
         this.baseTemp = temp;
         this.maxTemp = maxTemp;
+        this.useBlood = false;
+        this.blood = 0;
     }
 
     public int getHealth() {
@@ -89,6 +96,12 @@ public class PlayerStats {
     public boolean useTemperature() {
         return useTemperature;
     }
+    
+    public void setUseBlood(boolean useBlood) {this.useBlood = useBlood;}
+    
+    public boolean useBlood() {
+        return useBlood;
+    }
 
     public int getMaxTemp() {
         return maxTemp;
@@ -131,4 +144,21 @@ public class PlayerStats {
         Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));
     }
 
+    public int getBlood() {
+        return blood;
+    }
+
+    public int getMaxBlood() {
+        return maxBlood;
+    }
+
+    public void setBlood(int blood) {
+        this.blood = blood;
+        Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));
+    }
+
+    public void setMaxBlood(int maxBlood) {
+        this.maxBlood = maxBlood;
+        Manager.getArena(Bukkit.getPlayer(uuid)).getQuirkBattleGame().updatePlayerStats(Bukkit.getPlayer(uuid));
+    }
 }
